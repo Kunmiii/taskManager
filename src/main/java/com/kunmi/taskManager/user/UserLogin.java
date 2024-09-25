@@ -1,5 +1,5 @@
 package com.kunmi.taskManager.user;
 
-public interface userLogin {
+public interface UserLogin {
     User login(User user);
 }
