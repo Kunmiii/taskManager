@@ -1,6 +1,6 @@
 package com.kunmi.taskManager;
 
-import com.kunmi.taskManager.utilityManager.ScannerUtil;
+import com.kunmi.taskManager.scannerUtil.ScannerUtil;
 
 import java.util.InputMismatchException;
 
@@ -52,5 +52,6 @@ public class App
         } catch (InputMismatchException e) {
             System.out.println("Error: Invalid input");
         }
+        ScannerUtil.closeScanner();
     }
 }

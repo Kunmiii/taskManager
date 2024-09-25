@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.utilityManager;
+package com.kunmi.taskManager.scannerUtil;
 
 import lombok.NoArgsConstructor;
 
@@ -28,7 +28,7 @@ public class ScannerUtil {
         return userValue;
     }
 
-    public void closeScanner() {
+    public static void closeScanner() {
         scanner.close();
     }
 
