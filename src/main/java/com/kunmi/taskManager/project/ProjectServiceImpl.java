@@ -1,7 +1,6 @@
 package com.kunmi.taskManager.project;
 
-public class ProjectOperations implements ProjectServices{
-
+public class ProjectServiceImpl implements ProjectServices{
     @Override
     public Project create(Project project) {
         return null;

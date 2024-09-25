@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.task;
 
-public class TaskOperations implements TaskServices{
+public class TaskServiceImpl implements TaskServices{
     @Override
     public Task create(Task task) {
         return null;
