@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.user;
 
-public class UserOperations implements userLogin, UserRegistration {
+public class UserOperations implements UserLogin, UserRegistration {
 
 
     @Override
