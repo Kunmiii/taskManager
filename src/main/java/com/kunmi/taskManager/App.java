@@ -1,6 +1,8 @@
 package com.kunmi.taskManager;
 
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.user.UserFactory;
+import com.kunmi.taskManager.user.UserService;
 
 import java.util.InputMismatchException;
 
@@ -22,10 +24,14 @@ public class App
 
         String userInput = "\nEnter your choice: ";
         int input = ScannerUtil.getInt(userInput);
+        String email, password;
+
         try {
             switch (input) {
                 case 1:
+                    System.out.println("====================");
                     System.out.println("Help Command List");
+                    System.out.println("====================");
                     System.out.println("/help: List all commands with descriptions.");
                     System.out.println("/registration: Register a new user.");
                     System.out.println("/auth: Log in to the system.");
@@ -40,10 +46,31 @@ public class App
                     System.out.println("/exit: Log out. ");
                     break;
                 case 2:
-                    System.out.println("Registration");
+                    System.out.println("====================");
+                    System.out.println("User Registration");
+                    System.out.println("====================");
+                    String firstName = "Enter first name: ";
+                    firstName = ScannerUtil.getString(firstName);
+                    String lastName = "Enter last name: ";
+                    lastName = ScannerUtil.getString(lastName);
+                    password = "Enter password: ";
+                    password = ScannerUtil.getString(password);
+                    email = "Enter email address: ";
+                    email = ScannerUtil.getString(email);
+
+                    UserFactory.createUser(email, password, firstName, lastName);
+
                     break;
                 case 3:
-                    System.out.println("Login");
+                    System.out.println("====================");
+                    System.out.println("User Login");
+                    System.out.println("====================");
+
+                    email = ScannerUtil.getString("Enter email: ");
+                    password = ScannerUtil.getString("Enter password: ");
+
+                    String result = UserService.userLogin(email, password);
+                    System.out.printf(result);
                     break;
 
                 default:

@@ -1,14 +1,11 @@
 package com.kunmi.taskManager.user;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 @Getter
-@AllArgsConstructor
 @EqualsAndHashCode
 @ToString
+
 public class User {
 
     private String name;
@@ -16,4 +13,14 @@ public class User {
     private String password;
     private String email;
 
+    User(String name, String lastName, String password, String email) {
+        this.name = name;
+        this.lastName = lastName;
+        this.password = password;
+        this.email = email;
+    }
+
+    public boolean checkPassword(String password) {
+        return this.password.equals(password);
+    }
 }

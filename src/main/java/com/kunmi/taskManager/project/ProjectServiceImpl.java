@@ -12,12 +12,12 @@ public class ProjectServiceImpl implements ProjectServices{
     }
 
     @Override
-    public void view(Project project) {
+    public void view(int projectID) {
 
     }
 
     @Override
-    public void delete(Project project) {
+    public void delete(int projectID) {
 
     }
 }

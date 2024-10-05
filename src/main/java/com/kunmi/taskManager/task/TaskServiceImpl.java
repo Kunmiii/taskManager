@@ -12,12 +12,12 @@ public class TaskServiceImpl implements TaskServices{
     }
 
     @Override
-    public void view(Task task) {
+    public void view(int taskID) {
 
     }
 
     @Override
-    public void delete(Task task) {
+    public void delete(int taskID) {
 
     }
 }
