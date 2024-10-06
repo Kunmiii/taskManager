@@ -7,9 +7,18 @@ import static com.kunmi.taskManager.user.UserFactory.createUser;
 
 public class UserService {
 
-    private static final Map<String, User> userMemory = new HashMap<>();
+    private final Map<String, User> userMemory = new HashMap<>();
+    private static UserService userService;
 
-    public static String registerUser(String name, String lastName, String email, String password) {
+    public static UserService getServices() {
+        if (userService == null) {
+            userService = new UserService();
+        }
+        return userService;
+    }
+
+
+    public String registerUser(String name, String lastName, String email, String password) {
         User user = createUser(email, password, name, lastName);
 
         if (user != null) {
@@ -22,7 +31,7 @@ public class UserService {
         return "Error: Invalid input!";
     }
 
-    public static String userLogin(String email, String password) {
+    public String userLogin(String email, String password) {
         User user = userMemory.get(email);
 
         if (user != null && user.checkPassword(password)) {
@@ -32,7 +41,7 @@ public class UserService {
         }
     }
 
-    private static boolean validateExistingUser(User user) {
+    private boolean validateExistingUser(User user) {
        return (userMemory.containsKey(user.getEmail()));
     }
 }
