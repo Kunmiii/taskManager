@@ -6,7 +6,7 @@ import lombok.*;
 @EqualsAndHashCode
 @ToString
 
-public class User implements UserInterface{
+public class User implements UserInterface {
 
     private String name;
     private String lastName;

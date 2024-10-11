@@ -3,12 +3,13 @@ package com.kunmi.taskManager.user;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kunmi.taskManager.user.UserFactory.createUser;
-
 public class UserService {
-
-    private final Map<String, User> userMemory = new HashMap<>();
     private static UserService userService;
+    private final Map<String, User> userMemory = new HashMap<>();
+
+
+    private UserService() {
+    }
 
     public static UserService getServices() {
         if (userService == null) {
@@ -17,18 +18,14 @@ public class UserService {
         return userService;
     }
 
-
     public String registerUser(String name, String lastName, String email, String password) {
-        User user = createUser(email, password, name, lastName);
+        User user = new User(email, password, name, lastName);
 
-        if (user != null) {
-            if (!validateExistingUser(user)) {
-                userMemory.put(user.getEmail(), user);
-                return "User registered successfully.";
-            }
-            return "User with the email " + user.getEmail() + " already exist";
+        if (!validateExistingUser(user)) {
+            userMemory.put(user.getEmail(), user);
+            return "User registered successfully.";
         }
-        return "Error: Invalid input!";
+        return "User with the email " + user.getEmail() + " already exist";
     }
 
     public String userLogin(String email, String password) {
