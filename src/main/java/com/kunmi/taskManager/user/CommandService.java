@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class CommandService {
 
-    private UserManagement userManagement;
+    private final UserManagement userManagement;
     private final Map<String, Command> commandList = new HashMap<>();
 
     public CommandService(UserManagement userManagement) {

@@ -2,6 +2,7 @@ package com.kunmi.taskManager;
 
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
 import com.kunmi.taskManager.user.CommandService;
+import com.kunmi.taskManager.user.IUserService;
 import com.kunmi.taskManager.user.UserManagement;
 import com.kunmi.taskManager.user.UserService;
 
@@ -17,7 +18,7 @@ public class App {
         System.out.println("Type 'registration' to register.");
         System.out.println("Type 'login' to log in.");
 
-        UserService userService = UserService.getServices();
+        IUserService userService = UserService.getServices();
         UserManagement userManagement = new UserManagement(userService);
         CommandService commandService = new CommandService(userManagement);
 

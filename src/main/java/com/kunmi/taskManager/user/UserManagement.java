@@ -4,9 +4,9 @@ import com.kunmi.taskManager.scannerUtil.ScannerUtil;
 
 public class UserManagement {
 
-    private final UserService userService;
+    private final IUserService userService;
 
-    public UserManagement(UserService userService) {
+    public UserManagement(IUserService userService) {
         this.userService = userService;
     }
 

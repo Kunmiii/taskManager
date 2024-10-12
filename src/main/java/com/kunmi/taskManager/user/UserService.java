@@ -3,7 +3,7 @@ package com.kunmi.taskManager.user;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserService {
+public class UserService implements IUserService {
     private static UserService userService;
     private final Map<String, User> userMemory = new HashMap<>();
 
