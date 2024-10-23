@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.persistence;
+package com.kunmi.taskManager.repository;
 
 import com.kunmi.taskManager.user.IUser;
 import com.kunmi.taskManager.user.User;

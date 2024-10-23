@@ -1,10 +1,10 @@
 package com.kunmi.taskManager;
 
-import com.kunmi.taskManager.persistence.CommandPersistenceImpl;
+import com.kunmi.taskManager.repository.CommandRepositoryImpl;
+import com.kunmi.taskManager.repository.UserRepositoryImpl;
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
 import com.kunmi.taskManager.service.CommandServiceImpl;
 import com.kunmi.taskManager.service.UserService;
-import com.kunmi.taskManager.persistence.UserPersistenceImpl;
 import com.kunmi.taskManager.service.UserServiceImpl;
 
 public class App {
@@ -19,14 +19,14 @@ public class App {
         System.out.println("Type 'registration' to register.");
         System.out.println("Type 'login' to log in.");
 
-        UserPersistenceImpl userPersistenceImpl = new UserPersistenceImpl();
-        CommandPersistenceImpl commandPersistence = new CommandPersistenceImpl();
-        UserService userService = new UserServiceImpl(userPersistenceImpl);
-        CommandServiceImpl commandServiceImpl = new CommandServiceImpl(userService, commandPersistence);
+        UserRepositoryImpl userPersistence = new UserRepositoryImpl();
+        CommandRepositoryImpl commandPersistence = new CommandRepositoryImpl();
+        UserService userService = new UserServiceImpl(userPersistence);
+        CommandServiceImpl commandService = new CommandServiceImpl(userService, commandPersistence);
 
         String userInput = "\nEnter your command: ";
         String input = ScannerUtil.getString(userInput);
-        commandServiceImpl.executeCommand(input);
+        commandService.executeCommand(input);
         ScannerUtil.closeScanner();
     }
 

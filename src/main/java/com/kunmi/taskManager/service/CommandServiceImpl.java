@@ -1,13 +1,13 @@
 package com.kunmi.taskManager.service;
 
 import com.kunmi.taskManager.command.*;
-import com.kunmi.taskManager.persistence.CommandPersistenceImpl;
+import com.kunmi.taskManager.repository.CommandRepositoryImpl;
 
 public class CommandServiceImpl {
 
-    private final CommandPersistenceImpl commandPersistence;
+    private final CommandRepositoryImpl commandPersistence;
 
-    public CommandServiceImpl(UserService userService, CommandPersistenceImpl commandPersistence) {
+    public CommandServiceImpl(UserService userService, CommandRepositoryImpl commandPersistence) {
         this.commandPersistence = commandPersistence;
         registerCommand(new HelpCommand());
         registerCommand(new RegistrationCommand(userService));

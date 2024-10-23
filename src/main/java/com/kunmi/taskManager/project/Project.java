@@ -1,18 +1,17 @@
 package com.kunmi.taskManager.project;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 @Getter
+@Setter
 @ToString
 @AllArgsConstructor
 @EqualsAndHashCode
 public class Project {
 
-    private int id;
+    private String id;
     private String name;
-    private Date createDate;
+    private LocalDateTime createDate;
+    private String userId;
 }

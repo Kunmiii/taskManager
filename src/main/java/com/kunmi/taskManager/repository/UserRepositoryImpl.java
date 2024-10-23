@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.persistence;
+package com.kunmi.taskManager.repository;
 
 import com.kunmi.taskManager.user.IUser;
 import com.kunmi.taskManager.user.User;
@@ -6,7 +6,7 @@ import com.kunmi.taskManager.user.User;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserPersistenceImpl implements IUserPersistence {
+public class UserRepositoryImpl implements IUserPersistence {
 
     private final Map<String, User> userMemory = new HashMap<>();
 

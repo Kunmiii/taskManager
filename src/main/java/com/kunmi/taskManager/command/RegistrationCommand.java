@@ -18,12 +18,13 @@ public class RegistrationCommand implements CommandService {
         System.out.println("User Registration");
         System.out.println("====================");
 
+        String userId = ScannerUtil.getString("Enter user id: ");
         String firstName = ScannerUtil.getString("Enter first name: ");
         String lastName = ScannerUtil.getString("Enter last name: ");
         String password = ScannerUtil.getString("Enter password: ");
         String email = ScannerUtil.getString("Enter email address: ");
 
-        String registrationResult = userService.registerUser(firstName, lastName, email, password);
+        String registrationResult = userService.registerUser(userId, firstName, lastName, email, password);
         System.out.println(registrationResult);
     }
 
