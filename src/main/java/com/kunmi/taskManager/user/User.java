@@ -6,14 +6,14 @@ import lombok.*;
 @EqualsAndHashCode
 @ToString
 
-public class User implements UserInterface {
+public class User implements IUser {
 
-    private String name;
-    private String lastName;
-    private String password;
-    private String email;
+    private final String name;
+    private final String lastName;
+    private final String password;
+    private final String email;
 
-    User(String name, String lastName, String password, String email) {
+    public User(String name, String lastName, String password, String email) {
         this.name = name;
         this.lastName = lastName;
         this.password = password;
@@ -22,5 +22,10 @@ public class User implements UserInterface {
 
     public boolean checkPassword(String password) {
         return this.password.equals(password);
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
     }
 }

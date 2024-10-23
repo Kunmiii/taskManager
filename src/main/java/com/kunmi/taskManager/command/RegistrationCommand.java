@@ -1,29 +1,19 @@
-package com.kunmi.taskManager.user;
+package com.kunmi.taskManager.command;
 
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.service.CommandService;
+import com.kunmi.taskManager.service.UserService;
 
-public class UserManagement {
+public class RegistrationCommand implements CommandService {
 
-    private final IUserService userService;
+    private final UserService userService;
 
-    public UserManagement(IUserService userService) {
+    public RegistrationCommand(UserService userService) {
         this.userService = userService;
     }
 
-    public void handleUserLogin() {
-
-        System.out.println("====================");
-        System.out.println("User Login");
-        System.out.println("====================");
-
-        String email = ScannerUtil.getString("Enter email: ");
-        String password = ScannerUtil.getString("Enter password: ");
-
-        String result = userService.userLogin(email, password);
-        System.out.printf(result);
-    }
-
-    public void handleUserRegistration() {
+    @Override
+    public void execute() {
         System.out.println("====================");
         System.out.println("User Registration");
         System.out.println("====================");
@@ -35,5 +25,10 @@ public class UserManagement {
 
         String registrationResult = userService.registerUser(firstName, lastName, email, password);
         System.out.println(registrationResult);
+    }
+
+    @Override
+    public String getName() {
+        return "registration";
     }
 }

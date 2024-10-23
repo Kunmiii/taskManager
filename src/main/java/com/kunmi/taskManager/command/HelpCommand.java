@@ -1,6 +1,8 @@
-package com.kunmi.taskManager.user;
+package com.kunmi.taskManager.command;
 
-public class HelpCommand implements Command{
+import com.kunmi.taskManager.service.CommandService;
+
+public class HelpCommand implements CommandService {
 
     @Override
     public String getName() {
