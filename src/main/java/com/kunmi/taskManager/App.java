@@ -4,7 +4,7 @@ import com.kunmi.taskManager.repository.commandRepo.CommandRepository;
 import com.kunmi.taskManager.repository.commandRepo.CommandRepositoryImpl;
 import com.kunmi.taskManager.repository.userRepo.IUserRepository;
 import com.kunmi.taskManager.repository.userRepo.UserRepositoryImpl;
-import com.kunmi.taskManager.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
 import com.kunmi.taskManager.service.command.CommandServiceImpl;
 import com.kunmi.taskManager.service.user.UserService;
 import com.kunmi.taskManager.service.user.UserServiceImpl;

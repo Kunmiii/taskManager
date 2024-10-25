@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.scannerUtil;
+package com.kunmi.taskManager.input.scannerUtil;
 
 import lombok.NoArgsConstructor;
 
