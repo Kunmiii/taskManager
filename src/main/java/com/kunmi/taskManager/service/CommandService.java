@@ -1,6 +1,9 @@
 package com.kunmi.taskManager.service;
 
+import com.kunmi.taskManager.command.Command;
+
 public interface CommandService {
-    String getName();
-    void execute();
+    void executeCommand(String commandName);
+    void registerCommand(Command command);
+
 }

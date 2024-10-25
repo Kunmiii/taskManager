@@ -1,14 +1,14 @@
 package com.kunmi.taskManager.service;
 
+import com.kunmi.taskManager.repository.IUserRepository;
 import com.kunmi.taskManager.user.IUser;
 import com.kunmi.taskManager.user.User;
-import com.kunmi.taskManager.repository.UserRepositoryImpl;
 
 public class UserServiceImpl implements UserService {
 
-    private final UserRepositoryImpl userRepositoryImpl;
+    private final IUserRepository userRepositoryImpl;
 
-    public UserServiceImpl(UserRepositoryImpl userRepositoryImpl) {
+    public UserServiceImpl(IUserRepository userRepositoryImpl) {
         this.userRepositoryImpl = userRepositoryImpl;
     }
 
