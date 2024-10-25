@@ -1,5 +1,6 @@
 package com.kunmi.taskManager.repository;
 
+import com.kunmi.taskManager.command.Command;
 import com.kunmi.taskManager.service.CommandService;
 
 import java.util.HashMap;
@@ -7,15 +8,15 @@ import java.util.Map;
 
 public class CommandRepositoryImpl implements CommandRepository {
 
-    private final Map<String, CommandService> commandList = new HashMap<>();
+    private final Map<String, Command> commandList = new HashMap<>();
 
     @Override
-    public void saveCommand(CommandService command) {
+    public void saveCommand(Command command) {
         commandList.put(command.getName(), command);
     }
 
     @Override
-    public CommandService getCommand(String commandName) {
+    public Command getCommand(String commandName) {
        return commandList.get(commandName);
     }
 }

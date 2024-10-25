@@ -1,10 +1,9 @@
 package com.kunmi.taskManager.command;
 
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
-import com.kunmi.taskManager.service.CommandService;
 import com.kunmi.taskManager.service.UserService;
 
-public class LoginCommand implements CommandService {
+public class LoginCommand implements Command {
 
     private final UserService userService;
 

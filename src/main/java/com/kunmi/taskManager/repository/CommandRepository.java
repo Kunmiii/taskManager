@@ -1,8 +1,8 @@
 package com.kunmi.taskManager.repository;
 
-import com.kunmi.taskManager.service.CommandService;
+import com.kunmi.taskManager.command.Command;
 
 public interface CommandRepository {
-    void saveCommand(CommandService command);
-    CommandService getCommand(String commandName);
+    void saveCommand(Command command);
+    Command getCommand(String commandName);
 }

@@ -14,12 +14,12 @@ public class CommandServiceImpl {
         registerCommand(new LoginCommand(userService));
     }
 
-    public void registerCommand(CommandService command) {
+    public void registerCommand(Command command) {
             commandPersistence.saveCommand(command);
     }
 
     public void executeCommand(String commandName) {
-        CommandService command = commandPersistence.getCommand(commandName);
+        Command command = commandPersistence.getCommand(commandName);
         if (command != null) {
             command.execute();
         } else {
