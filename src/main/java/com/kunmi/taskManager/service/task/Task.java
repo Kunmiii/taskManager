@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.task;
+package com.kunmi.taskManager.service.task;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

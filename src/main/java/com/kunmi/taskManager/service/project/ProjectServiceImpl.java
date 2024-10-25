@@ -1,9 +1,8 @@
-package com.kunmi.taskManager.service;
+package com.kunmi.taskManager.service.project;
 
-import com.kunmi.taskManager.repository.ProjectRepository;
-import com.kunmi.taskManager.project.Project;
+import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
-import com.kunmi.taskManager.user.User;
+import com.kunmi.taskManager.service.user.User;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,10 +1,7 @@
-package com.kunmi.taskManager.service;
+package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.command.Command;
-import com.kunmi.taskManager.command.HelpCommand;
-import com.kunmi.taskManager.command.LoginCommand;
-import com.kunmi.taskManager.command.RegistrationCommand;
-import com.kunmi.taskManager.repository.CommandRepository;
+import com.kunmi.taskManager.repository.commandRepo.CommandRepository;
+import com.kunmi.taskManager.service.user.UserService;
 
 public class CommandServiceImpl implements CommandService {
 

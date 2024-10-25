@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.project;
+package com.kunmi.taskManager.service.project;
 
 import lombok.*;
 

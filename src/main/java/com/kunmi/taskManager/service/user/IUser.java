@@ -1,6 +1,6 @@
-package com.kunmi.taskManager.user;
+package com.kunmi.taskManager.service.user;
 
-import com.kunmi.taskManager.project.Project;
+import com.kunmi.taskManager.service.project.Project;
 
 public interface IUser {
     boolean checkPassword(String password);

@@ -1,13 +1,13 @@
 package com.kunmi.taskManager;
 
-import com.kunmi.taskManager.repository.CommandRepository;
-import com.kunmi.taskManager.repository.CommandRepositoryImpl;
-import com.kunmi.taskManager.repository.IUserRepository;
-import com.kunmi.taskManager.repository.UserRepositoryImpl;
+import com.kunmi.taskManager.repository.commandRepo.CommandRepository;
+import com.kunmi.taskManager.repository.commandRepo.CommandRepositoryImpl;
+import com.kunmi.taskManager.repository.userRepo.IUserRepository;
+import com.kunmi.taskManager.repository.userRepo.UserRepositoryImpl;
 import com.kunmi.taskManager.scannerUtil.ScannerUtil;
-import com.kunmi.taskManager.service.CommandServiceImpl;
-import com.kunmi.taskManager.service.UserService;
-import com.kunmi.taskManager.service.UserServiceImpl;
+import com.kunmi.taskManager.service.command.CommandServiceImpl;
+import com.kunmi.taskManager.service.user.UserService;
+import com.kunmi.taskManager.service.user.UserServiceImpl;
 
 public class App {
 

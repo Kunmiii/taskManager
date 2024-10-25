@@ -1,6 +1,6 @@
-package com.kunmi.taskManager.user;
+package com.kunmi.taskManager.service.user;
 
-import com.kunmi.taskManager.project.Project;
+import com.kunmi.taskManager.service.project.Project;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;

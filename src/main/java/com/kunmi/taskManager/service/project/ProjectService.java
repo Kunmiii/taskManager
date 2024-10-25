@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.service;
+package com.kunmi.taskManager.service.project;
 
 import java.time.LocalDateTime;
 

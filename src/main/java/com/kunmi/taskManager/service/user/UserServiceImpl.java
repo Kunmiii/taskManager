@@ -1,8 +1,6 @@
-package com.kunmi.taskManager.service;
+package com.kunmi.taskManager.service.user;
 
-import com.kunmi.taskManager.repository.IUserRepository;
-import com.kunmi.taskManager.user.IUser;
-import com.kunmi.taskManager.user.User;
+import com.kunmi.taskManager.repository.userRepo.IUserRepository;
 
 public class UserServiceImpl implements UserService {
 

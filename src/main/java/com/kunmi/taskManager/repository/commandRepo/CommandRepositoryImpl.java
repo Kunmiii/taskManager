@@ -1,7 +1,6 @@
-package com.kunmi.taskManager.repository;
+package com.kunmi.taskManager.repository.commandRepo;
 
-import com.kunmi.taskManager.command.Command;
-import com.kunmi.taskManager.service.CommandService;
+import com.kunmi.taskManager.service.command.Command;
 
 import java.util.HashMap;
 import java.util.Map;

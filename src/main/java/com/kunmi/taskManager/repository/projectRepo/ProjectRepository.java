@@ -1,6 +1,6 @@
-package com.kunmi.taskManager.repository;
+package com.kunmi.taskManager.repository.projectRepo;
 
-import com.kunmi.taskManager.project.Project;
+import com.kunmi.taskManager.service.project.Project;
 
 import java.util.List;
 

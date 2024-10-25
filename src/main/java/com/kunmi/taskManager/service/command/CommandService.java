@@ -1,6 +1,4 @@
-package com.kunmi.taskManager.service;
-
-import com.kunmi.taskManager.command.Command;
+package com.kunmi.taskManager.service.command;
 
 public interface CommandService {
     void executeCommand(String commandName);

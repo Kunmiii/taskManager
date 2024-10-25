@@ -1,4 +1,4 @@
-package com.kunmi.taskManager.command;
+package com.kunmi.taskManager.service.command;
 
 public interface Command {
     String getName();

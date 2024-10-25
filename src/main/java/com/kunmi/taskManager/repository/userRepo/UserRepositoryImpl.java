@@ -1,7 +1,7 @@
-package com.kunmi.taskManager.repository;
+package com.kunmi.taskManager.repository.userRepo;
 
-import com.kunmi.taskManager.user.IUser;
-import com.kunmi.taskManager.user.User;
+import com.kunmi.taskManager.service.user.IUser;
+import com.kunmi.taskManager.service.user.User;
 
 import java.util.HashMap;
 import java.util.Map;
