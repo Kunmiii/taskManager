@@ -1,6 +1,5 @@
 package com.kunmi.taskManager.repository.userRepo;
 
-import com.kunmi.taskManager.service.user.IUser;
 import com.kunmi.taskManager.service.user.User;
 
 import java.util.HashMap;
@@ -21,7 +20,7 @@ public class UserRepositoryImpl implements IUserRepository {
     }
 
     @Override
-    public IUser findUserByEmail(String email) {
+    public User findUserByEmail(String email) {
         return userMemory.get(email);
     }
 }

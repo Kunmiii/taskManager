@@ -11,7 +11,7 @@ public class ScannerUtil {
 
     public static String getString(String userInput) {
         System.out.print(userInput);
-        return scanner.nextLine();
+        return scanner.nextLine().trim();
     }
 
     public static int getInt(String userInput) {

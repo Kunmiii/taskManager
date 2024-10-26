@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface ProjectRepository {
     void saveProject(Project project);
-    Project getProject(String projectName, String userId);
+    Project getProject(String projectId, String userId);
     List<Project> getUserProjects(String userId);
     void removeProject(String projectName, String userID);
 }
