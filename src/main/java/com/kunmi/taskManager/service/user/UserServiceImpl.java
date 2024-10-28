@@ -13,8 +13,8 @@ public class UserServiceImpl implements UserService {
         this.projectService = projectService;
     }
 
-    public String registerUser(String id, String name, String lastName, String email, String password) {
-        UserImpl userImpl = new UserImpl(id, name, lastName, password, email);
+    public String registerUser(String name, String lastName, String email, String password) {
+        UserImpl userImpl = new UserImpl(name, lastName, password, email);
 
         if (!userRepositoryImpl.userExists(userImpl.getEmail())) {
             userRepositoryImpl.saveUser(userImpl);

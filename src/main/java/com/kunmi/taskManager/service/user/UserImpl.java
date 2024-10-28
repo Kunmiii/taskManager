@@ -1,12 +1,8 @@
 package com.kunmi.taskManager.service.user;
 
-import com.kunmi.taskManager.service.project.Project;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @EqualsAndHashCode
@@ -14,20 +10,19 @@ import java.util.List;
 
 public class UserImpl implements User {
 
+    private static int idCounter = 1;
     private final String id;
     private final String firstName;
     private final String lastName;
     private final String password;
     private final String email;
-    private final List<Project> projects;
 
-    public UserImpl(String id, String firstName, String lastName, String password, String email) {
-        this.id = id;
+    public UserImpl(String firstName, String lastName, String password, String email) {
+        this.id = generateId();
         this.firstName = firstName;
         this.lastName = lastName;
         this.password = password;
         this.email = email;
-        this.projects = new ArrayList<>();
     }
 
     public boolean checkPassword(String password) {
@@ -39,8 +34,7 @@ public class UserImpl implements User {
         return email;
     }
 
-    @Override
-    public void addProject(Project project) {
-        this.projects.add(project);
+    private static String generateId() {
+        return String.valueOf(idCounter++);
     }
 }

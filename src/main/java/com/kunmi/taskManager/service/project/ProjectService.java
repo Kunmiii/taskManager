@@ -8,7 +8,7 @@ public interface ProjectService {
     void setLoggedInUser(UserImpl loggedInUserImpl);
     void create(String projectId, String projectName, LocalDateTime createDate);
     void update(String projectId, String projectName);
-    void view();
+    void view(String projectId);
     void delete(String id);
 
 }

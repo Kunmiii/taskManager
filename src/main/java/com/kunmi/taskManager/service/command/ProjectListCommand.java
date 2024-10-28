@@ -1,5 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
+import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
 import com.kunmi.taskManager.service.project.ProjectService;
 
 public class ProjectListCommand implements Command {
@@ -21,6 +22,7 @@ public class ProjectListCommand implements Command {
         System.out.println("Display Projects");
         System.out.println("====================");
 
-        projectService.view();
+        String projectId = ScannerUtil.getString("Enter project id: ");
+        projectService.view(projectId);
     }
 }
