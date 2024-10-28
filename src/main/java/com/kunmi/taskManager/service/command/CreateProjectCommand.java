@@ -24,10 +24,9 @@ public class CreateProjectCommand implements Command {
         System.out.println("Create New Project");
         System.out.println("====================");
 
-        String projectId = ScannerUtil.getString("Enter project id: ");
         String projectName = ScannerUtil.getString("Enter project name: ");
         LocalDateTime projectDate = LocalDateTime.now();
 
-        projectService.create(projectId, projectName, projectDate);
+        projectService.create(projectName, projectDate);
     }
 }

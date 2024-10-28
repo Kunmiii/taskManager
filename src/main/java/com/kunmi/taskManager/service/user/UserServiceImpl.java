@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
         if (!userRepositoryImpl.userExists(userImpl.getEmail())) {
             userRepositoryImpl.saveUser(userImpl);
 
-            return "User registered successfully." + userImpl.getHashedPassword();
+            return "User registered successfully.";
         }
         return "User with the email " + userImpl.getEmail() + " already exist";
     }

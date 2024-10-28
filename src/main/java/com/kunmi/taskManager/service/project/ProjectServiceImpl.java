@@ -30,10 +30,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void create(String projectId, String projectName, LocalDateTime createDate) {
+    public void create(String projectName, LocalDateTime createDate) {
         if (!isUserLoggedIn()) return;
 
-        Project project = new Project(projectId, projectName, createDate, loggedInUserImpl.getId());
+        Project project = new Project(projectName, createDate, loggedInUserImpl.getId());
         projectRepository.addProject(loggedInUserImpl.getId(), project);
         System.out.println("Project created successfully");
     }
