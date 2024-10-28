@@ -19,19 +19,21 @@ public class UserServiceImpl implements UserService {
         if (!userRepositoryImpl.userExists(userImpl.getEmail())) {
             userRepositoryImpl.saveUser(userImpl);
 
-            return "User registered successfully.";
+            return "User registered successfully." + userImpl.getHashedPassword();
         }
         return "User with the email " + userImpl.getEmail() + " already exist";
     }
 
     public String userLogin(String email, String password) {
-        UserImpl userImpl = (UserImpl) userRepositoryImpl.findUserByEmail(email);
+        User user = userRepositoryImpl.findUserByEmail(email);
 
-        if (userImpl != null && userImpl.checkPassword(password)) {
-            projectService.setLoggedInUser(userImpl);
-            return "Login successful!";
-        } else {
+        if (user instanceof UserImpl) {
+            UserImpl userImpl = (UserImpl) user;
+            if (userImpl.checkPassword(password)) {
+                projectService.setLoggedInUser(userImpl);
+                return "Login successful!";
+            }
+        }
             return "Login failed!";
         }
     }
-}

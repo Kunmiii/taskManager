@@ -28,11 +28,11 @@ public class App {
         System.out.println("Type 'create project' to create a project");
         System.out.println("Type 'update project' to rename a project");
         System.out.println("Type 'delete project' to delete a project");
-        
+
         IUserRepository userRepository = new UserRepositoryImpl();
         CommandRepository commandPersistence = new CommandRepositoryImpl();
         ProjectRepository projectRepository = new ProjectRepositoryImpl();
-        
+
         ProjectService projectService = new ProjectServiceImpl(projectRepository, null);
         UserService userService = new UserServiceImpl(userRepository, projectService);
         CommandServiceImpl commandService = new CommandServiceImpl(userService, projectService, commandPersistence);
@@ -48,7 +48,7 @@ public class App {
                 isRunning = false;
             } else {
                 commandService.executeCommand(input);
-                System.out.println("waiting...");
+                System.out.println("waiting next command...");
             }
         }
         ScannerUtil.closeScanner();
