@@ -32,7 +32,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
     @Override
     public void removeProject(String projectId, String userId) {
-        Map<String, Project> userProjects = projectRepo.remove(userId);
+        Map<String, Project> userProjects = projectRepo.get(userId);
         if (userProjects != null) {
             userProjects.remove(projectId);
             System.out.println("Project removed successfully");

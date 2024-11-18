@@ -10,5 +10,6 @@ public interface ProjectService {
     void update(String projectId, String projectName);
     void view(String projectId);
     void delete(String id);
+    UserImpl getLoggedInUser();
 
 }

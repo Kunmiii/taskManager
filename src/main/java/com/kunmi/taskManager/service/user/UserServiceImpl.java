@@ -5,19 +5,19 @@ import com.kunmi.taskManager.service.project.ProjectService;
 
 public class UserServiceImpl implements UserService {
 
-    private final IUserRepository userRepositoryImpl;
+    private final IUserRepository userRepository;
     private final ProjectService projectService;
 
-    public UserServiceImpl(IUserRepository userRepositoryImpl, ProjectService projectService) {
-        this.userRepositoryImpl = userRepositoryImpl;
+    public UserServiceImpl(IUserRepository userRepository, ProjectService projectService) {
+        this.userRepository = userRepository;
         this.projectService = projectService;
     }
 
     public String registerUser(String name, String lastName, String email, String password) {
         UserImpl userImpl = new UserImpl(name, lastName, password, email);
 
-        if (!userRepositoryImpl.userExists(userImpl.getEmail())) {
-            userRepositoryImpl.saveUser(userImpl);
+        if (!userRepository.userExists(userImpl.getEmail())) {
+            userRepository.saveUser(userImpl);
 
             return "User registered successfully.";
         }
@@ -25,7 +25,7 @@ public class UserServiceImpl implements UserService {
     }
 
     public String userLogin(String email, String password) {
-        User user = userRepositoryImpl.findUserByEmail(email);
+        User user = userRepository.findUserByEmail(email);
 
         if (user instanceof UserImpl) {
             UserImpl userImpl = (UserImpl) user;

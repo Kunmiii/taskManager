@@ -17,6 +17,11 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    public UserImpl getLoggedInUser() {
+        return loggedInUserImpl;
+    }
+
+    @Override
     public void setLoggedInUser(UserImpl loggedInUserImpl) {
         this.loggedInUserImpl = loggedInUserImpl;
     }
