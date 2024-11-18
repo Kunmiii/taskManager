@@ -30,16 +30,10 @@ class ProjectServiceImplTest {
         MockitoAnnotations.openMocks(this);
         mockUser = mock(UserImpl.class);
 
-        projectService = new ProjectServiceImpl(projectRepository, mockUser);
+        projectService = new ProjectServiceImpl(projectRepository);
         projectService.setLoggedInUser(mockUser);
 
         when(mockUser.getId()).thenReturn("mockUserId");
-    }
-
-    @Test
-    void constructorShouldInitializeRepositoryAndUser() {
-        projectService = new ProjectServiceImpl(projectRepository, mockUser);
-        assertEquals(mockUser, projectService.getLoggedInUser());
     }
 
     @Test

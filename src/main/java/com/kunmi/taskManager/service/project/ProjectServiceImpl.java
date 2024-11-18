@@ -11,9 +11,8 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private UserImpl loggedInUserImpl;
 
-    public ProjectServiceImpl(ProjectRepository projectRepository, UserImpl loggedInUserImpl) {
+    public ProjectServiceImpl(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
-        this.loggedInUserImpl = loggedInUserImpl;
     }
 
     @Override

@@ -33,7 +33,7 @@ public class App {
         CommandRepository commandPersistence = new CommandRepositoryImpl();
         ProjectRepository projectRepository = new ProjectRepositoryImpl();
 
-        ProjectService projectService = new ProjectServiceImpl(projectRepository, null);
+        ProjectService projectService = new ProjectServiceImpl(projectRepository);
         UserService userService = new UserServiceImpl(userRepository, projectService);
         CommandServiceImpl commandService = new CommandServiceImpl(userService, projectService, commandPersistence);
 
