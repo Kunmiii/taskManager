@@ -1,7 +1,8 @@
 package com.kunmi.taskManager.service.project;
 
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
-import com.kunmi.taskManager.service.user.UserImpl;
+import com.kunmi.taskManager.service.user.User;
+import com.kunmi.taskManager.service.user.UserContext;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,24 +10,15 @@ import java.util.List;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
-    private UserImpl loggedInUserImpl;
 
     public ProjectServiceImpl(ProjectRepository projectRepository) {
         this.projectRepository = projectRepository;
     }
 
-    @Override
-    public UserImpl getLoggedInUser() {
-        return loggedInUserImpl;
-    }
-
-    @Override
-    public void setLoggedInUser(UserImpl loggedInUserImpl) {
-        this.loggedInUserImpl = loggedInUserImpl;
-    }
-
     private boolean isUserLoggedIn() {
-        if (loggedInUserImpl == null) {
+        User loggedInUser = UserContext.getCurrentUser();
+
+        if (loggedInUser == null) {
             System.out.println("No user is logged in");
             return false;
         }
@@ -36,21 +28,24 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void create(String projectName, LocalDateTime createDate) {
         if (!isUserLoggedIn()) return;
+        User loggedInUser = UserContext.getCurrentUser();
 
-        Project project = new Project(projectName, createDate, loggedInUserImpl.getId());
-        projectRepository.addProject(loggedInUserImpl.getId(), project);
+        Project project = new Project(projectName, createDate, loggedInUser.getId());
+        projectRepository.addProject(loggedInUser.getId(), project);
         System.out.println("Project created successfully");
     }
 
     @Override
     public void update(String projectId, String newProjectName) {
         if (!isUserLoggedIn()) return;
-        Project retrievedProject = projectRepository.getProject(projectId, loggedInUserImpl.getId());
+
+        User loggedInUser = UserContext.getCurrentUser();
+        Project retrievedProject = projectRepository.getProject(projectId, loggedInUser.getId());
 
         if (retrievedProject != null) {
             retrievedProject.setName(newProjectName);
             retrievedProject.setCreateDate(LocalDateTime.now());
-            projectRepository.addProject(loggedInUserImpl.getId(), retrievedProject);
+            projectRepository.addProject(loggedInUser.getId(), retrievedProject);
             System.out.println("Project updated successfully!");
         } else {
             System.out.println("Project not found.");
@@ -60,8 +55,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void view(String projectId) {
         if (!isUserLoggedIn()) return;
+
+        User loggedInUser = UserContext.getCurrentUser();
         try {
-            List<Project> userProjects = projectRepository.getUserProjects(loggedInUserImpl.getId(), projectId);
+            List<Project> userProjects = projectRepository.getUserProjects(loggedInUser.getId(), projectId);
 
             if (userProjects.isEmpty()) {
                 System.out.println("User has no project!");
@@ -78,15 +75,17 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void delete(String projectId) {
         if (!isUserLoggedIn()) return;
+
+        User loggedInUser = UserContext.getCurrentUser();
         try {
-            Project response = projectRepository.getProject(projectId, loggedInUserImpl.getId());
+            Project response = projectRepository.getProject(projectId, loggedInUser.getId());
 
             if (response == null) {
                 System.out.println("Project not found!");
                 return;
             }
 
-            projectRepository.removeProject(projectId, loggedInUserImpl.getId());
+            projectRepository.removeProject(projectId, response.getId());
             System.out.println("project deleted successfully!");
         } catch (NullPointerException e) {
             System.out.println("Error: User not logged in or invalid project ID.");

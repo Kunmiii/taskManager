@@ -1,7 +1,8 @@
 package com.kunmi.taskManager.service.project;
 
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
-import com.kunmi.taskManager.service.user.UserImpl;
+import com.kunmi.taskManager.service.user.User;
+import com.kunmi.taskManager.service.user.UserContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -15,29 +16,31 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+//@ExtendWith(MockitoExtension.class)
 class ProjectServiceImplTest {
 
     @Mock
     private ProjectRepository projectRepository;
 
     @Mock
-    private UserImpl mockUser;
+    private User mockUser;
 
     private ProjectServiceImpl projectService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockUser = mock(UserImpl.class);
+        mockUser = mock(User.class);
 
         projectService = new ProjectServiceImpl(projectRepository);
-        projectService.setLoggedInUser(mockUser);
+
+        UserContext.setCurrentUser(mockUser);
 
         when(mockUser.getId()).thenReturn("mockUserId");
     }
 
     @Test
-    void createShouldAddProjectWhenUserIsLoggedIn() {
+    void shouldAddProjectWhenUserIsLoggedIn() {
         String projectName = "Project X";
         LocalDateTime createDate = LocalDateTime.now();
 
@@ -46,17 +49,17 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void createShouldNotAddProjectWhenUserIsNotLoggedIn() {
+    void shouldNotAddProjectWhenUserIsNotLoggedIn() {
         String projectName = "Project X";
         LocalDateTime createDate = LocalDateTime.now();
-        projectService.setLoggedInUser(null);
+        UserContext.setCurrentUser(null);
 
         projectService.create(projectName, createDate);
         verify(projectRepository, never()).addProject(any(), any());
     }
 
     @Test
-    void updateShouldUpdateProjectWhenProjectExist() {
+    void shouldUpdateProjectWhenProjectExist() {
         String newProjectName = "ProjectX version II";
         String projectId = "1";
 
@@ -71,7 +74,7 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void updateShouldNotUpdateProjectWhenProjectDoesNotExist() {
+    void shouldNotUpdateProjectWhenProjectDoesNotExist() {
         String newProjectName = "ProjectX version II";
         String projectId = "1";
 
@@ -83,11 +86,11 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void updateShouldNotUpdateProjectWhenUserAndProjectDoesNotExist() {
+    void shouldNotUpdateProjectWhenUserAndProjectDoesNotExist() {
         String newProjectName = "ProjectX version II";
         String projectId = "1";
 
-        projectService.setLoggedInUser(null);
+        UserContext.setCurrentUser(null);
 
         projectService.update(projectId, newProjectName);
 
@@ -96,7 +99,7 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void viewShouldPrintProjectsWhenUserIsLoggedIn() {
+    void shouldPrintProjectsWhenUserIsLoggedIn() {
         String projectName = "Project X";
         LocalDateTime createDate = LocalDateTime.now();
 
@@ -110,17 +113,16 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void viewShouldPrintMessageWhenUserIsNotLoggedIn() {
+    void shouldPrintMessageWhenUserIsNotLoggedIn() {
         String projectId = "1";
-        projectService.setLoggedInUser(null);
-
+        UserContext.setCurrentUser(null);
         projectService.view(projectId);
 
         verify(projectRepository, never()).getUserProjects(anyString(), anyString());
     }
 
     @Test
-    void viewShouldPrintMessageWhenProjectDoesNotExist() {
+    void shouldPrintMessageWhenProjectDoesNotExist() {
         String projectId = "1";
 
         projectService.view(projectId);
@@ -129,7 +131,7 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    void viewShouldPrintExceptionWhenProjectIsInvalid() {
+    void shouldPrintExceptionWhenProjectIsInvalid() {
         String invalidProjectId = null;
 
         projectService.view(invalidProjectId);

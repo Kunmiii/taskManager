@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static junit.framework.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -29,7 +30,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    void registerUserWhenUserDoesNotExist() {
+    void shouldRegisterUserWhenUserDoesNotExist() {
         String firstName = "imisioluwanimi";
         String lastName = "Oke";
         String email = "imisi@test.com";
@@ -39,12 +40,12 @@ class UserServiceImplTest {
 
         String result = userService.registerUser(firstName, lastName, email, password);
 
-        verify(userRepository, times(1)).saveUser(any(UserImpl.class));
+        verify(userRepository, times(1)).saveUser(any(User.class));
         assertEquals("User registered successfully.", result);
     }
 
     @Test
-    void registerUserWhenUserExist() {
+    void shouldRegisterUserWhenUserExist() {
 
         String firstName = "imisioluwanimi";
         String lastName = "Oke";
@@ -55,13 +56,13 @@ class UserServiceImplTest {
 
         String result = userService.registerUser(firstName, lastName, email, password);
 
-        verify(userRepository, never()).saveUser(any(UserImpl.class));
+        verify(userRepository, never()).saveUser(any(User.class));
         assertEquals("User with the email imisi@test.com already exist", result);
     }
 
 
     @Test
-    void userLoginWhenUserNotFound() {
+    void shouldNotLoginWhenUserNotFound() {
         String email = "imisi@test.com";
         String password = "12345";
 
@@ -69,37 +70,41 @@ class UserServiceImplTest {
 
         String result = userService.userLogin(email, password);
 
-        verify(projectService, never()).setLoggedInUser(any(UserImpl.class));
+        assertNull(UserContext.getCurrentUser());
         assertEquals("Login failed!", result);
     }
 
     @Test
-    void userLoginWhenCredentialsAreValid() {
+    void shouldLoginWhenCredentialsAreValid() {
         String email = "imisi@test.com";
         String password = "12345";
 
-        UserImpl mockUser = mock(UserImpl.class);
+        User mockUser = mock(User.class);
+        UserServiceImpl mockUserService = mock(UserServiceImpl.class);
+
         when(userRepository.findUserByEmail(email)).thenReturn(mockUser);
-        when(mockUser.checkPassword(password)).thenReturn(true);
+        when(mockUserService.checkPassword(password)).thenReturn(true);
 
         String result = userService.userLogin(email, password);
 
-        verify(projectService, times(1)).setLoggedInUser(mockUser);
+        assertEquals(mockUser, UserContext.getCurrentUser());
         assertEquals("Login successful!", result);
     }
 
     @Test
-    void userLoginWhenCredentialsAreInvalid() {
+    void shouldNotLoginWhenCredentialsAreInvalid() {
         String email = "imsi@test.com";
         String password = "12345";
 
-        UserImpl mockUser = mock(UserImpl.class);
+        User mockUser = mock(User.class);
         when(userRepository.findUserByEmail(email)).thenReturn(mockUser);
-        when(mockUser.checkPassword(password)).thenReturn(false);
 
-        String result = userService.userLogin(email, password);
+        UserServiceImpl userServiceSpy = spy(new UserServiceImpl(userRepository, projectService));
+        doReturn(false).when(userServiceSpy).checkPassword(password);
 
-        verify(projectService, never()).setLoggedInUser(mockUser);
+        String result = userServiceSpy.userLogin(email, password);
+
+        assertNull(UserContext.getCurrentUser());
         assertEquals("Login failed!", result);
     }
 }
