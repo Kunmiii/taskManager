@@ -20,6 +20,6 @@ public class TaskListCommand implements Command {
         System.out.println("View All Tasks");
         System.out.println("====================");
 
-        taskServices.view();
+        taskServices.findAll();
     }
 }

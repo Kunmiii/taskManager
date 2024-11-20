@@ -24,8 +24,9 @@ public class CreateTaskCommand implements Command {
         System.out.println("====================");
 
         String taskName = ScannerUtil.getString("Enter Task name: ");
+        String projectId = ScannerUtil.getString(" Enter Project id: ");
         LocalDateTime createDate = LocalDateTime.now();
 
-        taskServices.create(taskName, createDate);
+        taskServices.create(projectId, taskName, createDate);
     }
 }

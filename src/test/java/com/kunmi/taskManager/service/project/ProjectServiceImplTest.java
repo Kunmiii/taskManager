@@ -107,7 +107,7 @@ class ProjectServiceImplTest {
 
         when(projectRepository.getUserProjects(project.getUserId(), project.getId())).thenReturn(List.of(project));
 
-        projectService.view(project.getId());
+        projectService.findAll(project.getId());
 
         verify(projectRepository, times(1)).getUserProjects(project.getUserId(), project.getId());
     }
@@ -116,7 +116,7 @@ class ProjectServiceImplTest {
     void shouldPrintMessageWhenUserIsNotLoggedIn() {
         String projectId = "1";
         UserContext.setCurrentUser(null);
-        projectService.view(projectId);
+        projectService.findAll(projectId);
 
         verify(projectRepository, never()).getUserProjects(anyString(), anyString());
     }
@@ -125,7 +125,7 @@ class ProjectServiceImplTest {
     void shouldPrintMessageWhenProjectDoesNotExist() {
         String projectId = "1";
 
-        projectService.view(projectId);
+        projectService.findAll(projectId);
 
         verify(projectRepository, times(1)).getUserProjects(mockUser.getId(), projectId);
     }
@@ -134,7 +134,7 @@ class ProjectServiceImplTest {
     void shouldPrintExceptionWhenProjectIsInvalid() {
         String invalidProjectId = null;
 
-        projectService.view(invalidProjectId);
+        projectService.findAll(invalidProjectId);
 
         verify(projectRepository, never()).getUserProjects(anyString(), anyString());
     }

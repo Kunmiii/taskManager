@@ -99,7 +99,7 @@ class UserServiceImplTest {
         User mockUser = mock(User.class);
         when(userRepository.findUserByEmail(email)).thenReturn(mockUser);
 
-        UserServiceImpl userServiceSpy = spy(new UserServiceImpl(userRepository, projectService));
+        UserServiceImpl userServiceSpy = spy(new UserServiceImpl(userRepository));
         doReturn(false).when(userServiceSpy).checkPassword(password);
 
         String result = userServiceSpy.userLogin(email, password);

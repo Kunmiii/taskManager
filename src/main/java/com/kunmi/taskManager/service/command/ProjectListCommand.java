@@ -23,6 +23,6 @@ public class ProjectListCommand implements Command {
         System.out.println("====================");
 
         String projectId = ScannerUtil.getString("Enter project id: ");
-        projectService.view(projectId);
+        projectService.findAll(projectId);
     }
 }

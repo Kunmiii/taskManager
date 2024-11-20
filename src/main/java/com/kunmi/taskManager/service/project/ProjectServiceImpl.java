@@ -55,8 +55,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void view(String projectId) {
-        if (!isUserLoggedIn()) return;
+    public List<Project> findAll(String projectId) {
+        if (!isUserLoggedIn()) return null;
 
         User loggedInUser = UserContext.getCurrentUser();
         try {
@@ -64,14 +64,15 @@ public class ProjectServiceImpl implements ProjectService {
 
             if (userProjects.isEmpty()) {
                 System.out.println("User has no project!");
-                return;
+                return null;
             }
-            userProjects.forEach(project -> System.out.println(project.toString()));
+            return userProjects;
         } catch (NullPointerException e) {
             System.out.println("Error: Unable to retrieve projects. User might not be logged in or Project ID maybe invalid");
         } catch (Exception e) {
             System.out.println("An unexpected error occurred while viewing projects: "+ e.getMessage());
         }
+        return null;
     }
 
     @Override

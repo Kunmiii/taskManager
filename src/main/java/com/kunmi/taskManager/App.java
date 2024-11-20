@@ -39,7 +39,7 @@ public class App {
         TaskRepository taskRepository = new TaskRepositoryImpl();
 
         ProjectService projectService = new ProjectServiceImpl(projectRepository);
-        UserService userService = new UserServiceImpl(userRepository, projectService);
+        UserService userService = new UserServiceImpl(userRepository);
         TaskServices taskServices = new TaskServiceImpl(taskRepository);
         CommandServiceImpl commandService = new CommandServiceImpl(userService, projectService, commandPersistence, taskServices);
 

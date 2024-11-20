@@ -1,17 +1,14 @@
 package com.kunmi.taskManager.service.user;
 
 import com.kunmi.taskManager.repository.userRepo.IUserRepository;
-import com.kunmi.taskManager.service.project.ProjectService;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class UserServiceImpl implements UserService {
 
     private final IUserRepository userRepository;
-    private final ProjectService projectService;
 
-    public UserServiceImpl(IUserRepository userRepository, ProjectService projectService) {
+    public UserServiceImpl(IUserRepository userRepository) {
         this.userRepository = userRepository;
-        this.projectService = projectService;
     }
 
     public String registerUser(String name, String lastName, String email, String password) {

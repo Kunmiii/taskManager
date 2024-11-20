@@ -16,11 +16,10 @@ public class TaskServiceImpl implements TaskServices {
     }
 
     @Override
-    public void create(String taskName, LocalDateTime createDate) {
-        Project project = ProjectContext.getCurrentProject();
-        Task task = new Task(taskName, createDate, project.getId());
+    public void create(String projectId, String taskName, LocalDateTime createDate) {
+        Task task = new Task(taskName, createDate, projectId);
 
-        taskRepository.addTask(project.getId(), task);
+        taskRepository.addTask(projectId, task);
         System.out.println("Task created successfully!");
     }
 
@@ -42,7 +41,7 @@ public class TaskServiceImpl implements TaskServices {
     }
 
     @Override
-    public void view() {
+    public void findAll() {
         Project project = ProjectContext.getCurrentProject();
         List<Task> projectTask = taskRepository.getProjectTasks(project.getId());
         projectTask.forEach(task -> System.out.println(task.toString()));
