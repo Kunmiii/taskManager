@@ -31,6 +31,8 @@ public class ProjectServiceImpl implements ProjectService {
         User loggedInUser = UserContext.getCurrentUser();
 
         Project project = new Project(projectName, createDate, loggedInUser.getId());
+        ProjectContext.setCurrentProject(project);
+
         projectRepository.addProject(loggedInUser.getId(), project);
         System.out.println("Project created successfully");
     }
@@ -85,7 +87,7 @@ public class ProjectServiceImpl implements ProjectService {
                 return;
             }
 
-            projectRepository.removeProject(projectId, response.getId());
+            projectRepository.removeProject(projectId, loggedInUser.getId());
             System.out.println("project deleted successfully!");
         } catch (NullPointerException e) {
             System.out.println("Error: User not logged in or invalid project ID.");

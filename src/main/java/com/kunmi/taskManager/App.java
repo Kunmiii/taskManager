@@ -5,11 +5,15 @@ import com.kunmi.taskManager.repository.commandRepo.CommandRepository;
 import com.kunmi.taskManager.repository.commandRepo.CommandRepositoryImpl;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepositoryImpl;
+import com.kunmi.taskManager.repository.taskRepo.TaskRepository;
+import com.kunmi.taskManager.repository.taskRepo.TaskRepositoryImpl;
 import com.kunmi.taskManager.repository.userRepo.IUserRepository;
 import com.kunmi.taskManager.repository.userRepo.UserRepositoryImpl;
 import com.kunmi.taskManager.service.command.CommandServiceImpl;
 import com.kunmi.taskManager.service.project.ProjectService;
 import com.kunmi.taskManager.service.project.ProjectServiceImpl;
+import com.kunmi.taskManager.service.task.TaskServiceImpl;
+import com.kunmi.taskManager.service.task.TaskServices;
 import com.kunmi.taskManager.service.user.UserService;
 import com.kunmi.taskManager.service.user.UserServiceImpl;
 
@@ -32,10 +36,12 @@ public class App {
         IUserRepository userRepository = new UserRepositoryImpl();
         CommandRepository commandPersistence = new CommandRepositoryImpl();
         ProjectRepository projectRepository = new ProjectRepositoryImpl();
+        TaskRepository taskRepository = new TaskRepositoryImpl();
 
         ProjectService projectService = new ProjectServiceImpl(projectRepository);
         UserService userService = new UserServiceImpl(userRepository, projectService);
-        CommandServiceImpl commandService = new CommandServiceImpl(userService, projectService, commandPersistence);
+        TaskServices taskServices = new TaskServiceImpl(taskRepository);
+        CommandServiceImpl commandService = new CommandServiceImpl(userService, projectService, commandPersistence, taskServices);
 
         boolean isRunning = true;
 
