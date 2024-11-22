@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.user;
 
-import com.kunmi.taskManager.repository.userRepo.IUserRepository;
+import com.kunmi.taskManager.repository.userRepo.UserRepository;
 import com.kunmi.taskManager.service.project.ProjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
 
     @Mock
-    private IUserRepository userRepository;
+    private UserRepository userRepository;
 
     @Mock
     private ProjectService projectService;

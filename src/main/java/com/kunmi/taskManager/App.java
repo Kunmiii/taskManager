@@ -7,7 +7,7 @@ import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepositoryImpl;
 import com.kunmi.taskManager.repository.taskRepo.TaskRepository;
 import com.kunmi.taskManager.repository.taskRepo.TaskRepositoryImpl;
-import com.kunmi.taskManager.repository.userRepo.IUserRepository;
+import com.kunmi.taskManager.repository.userRepo.UserRepository;
 import com.kunmi.taskManager.repository.userRepo.UserRepositoryImpl;
 import com.kunmi.taskManager.service.command.CommandServiceImpl;
 import com.kunmi.taskManager.service.project.ProjectService;
@@ -33,7 +33,7 @@ public class App {
         System.out.println("Type 'update project' to rename a project");
         System.out.println("Type 'delete project' to delete a project");
 
-        IUserRepository userRepository = new UserRepositoryImpl();
+        UserRepository userRepository = new UserRepositoryImpl();
         CommandRepository commandPersistence = new CommandRepositoryImpl();
         ProjectRepository projectRepository = new ProjectRepositoryImpl();
         TaskRepository taskRepository = new TaskRepositoryImpl();

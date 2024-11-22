@@ -8,13 +8,13 @@ import lombok.var;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class UserRepositoryImpl implements IUserRepository {
+public class UserRepositoryImpl implements UserRepository {
 
     //private final Map<String, User> userMemory = new HashMap<>();
 
     @Override
     public void saveUser(User user) {
-        //userMemory.put(user.getEmail(), user);
+
         String insertSql = "insert into users (firstName, lastName, password, email) " +
                 "values(?, ?, ?, ?)";
 
@@ -35,6 +35,7 @@ public class UserRepositoryImpl implements IUserRepository {
 
     @Override
     public boolean userExists(String email) {
+
         String selectSql = "select email from users where email = ?";
 
         try(Connection connection = DatabaseUtil.getDataSource().getConnection();
@@ -53,6 +54,7 @@ public class UserRepositoryImpl implements IUserRepository {
 
     @Override
     public User findUserByEmail(String email) {
+
         String selectSQL = "select * from users where email = ?";
         try (Connection connection = DatabaseUtil.getDataSource().getConnection()) {
             var preparedStatement = connection.prepareStatement(selectSQL);
