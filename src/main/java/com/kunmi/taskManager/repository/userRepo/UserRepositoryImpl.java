@@ -6,7 +6,7 @@ import com.kunmi.taskManager.service.user.User;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserRepositoryImpl implements IUserRepository {
+public class UserRepositoryImpl implements UserRepository {
 
     private final Map<String, User> userMemory = new HashMap<>();
 

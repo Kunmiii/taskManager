@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.utils.input.ScannerUtil;
 import com.kunmi.taskManager.service.user.UserService;
 
 public class RegistrationCommand implements Command {
@@ -22,7 +22,7 @@ public class RegistrationCommand implements Command {
         String password = ScannerUtil.getString("Enter password: ");
         String email = ScannerUtil.getString("Enter email address: ");
 
-        String registrationResult = userService.registerUser(firstName, lastName, email, password);
+        String registrationResult = userService.registerUser(firstName, lastName, password, email);
         System.out.println(registrationResult);
     }
 

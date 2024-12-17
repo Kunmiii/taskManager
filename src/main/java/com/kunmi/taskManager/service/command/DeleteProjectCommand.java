@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.utils.input.ScannerUtil;
 import com.kunmi.taskManager.service.project.ProjectService;
 
 public class DeleteProjectCommand implements Command {

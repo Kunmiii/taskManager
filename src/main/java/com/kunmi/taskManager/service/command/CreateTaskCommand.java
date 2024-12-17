@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.utils.input.ScannerUtil;
 import com.kunmi.taskManager.service.task.TaskServices;
 
 import java.time.LocalDateTime;
@@ -24,8 +24,9 @@ public class CreateTaskCommand implements Command {
         System.out.println("====================");
 
         String taskName = ScannerUtil.getString("Enter Task name: ");
+        String projectId = ScannerUtil.getString("Enter Project ID: ");
         LocalDateTime createDate = LocalDateTime.now();
 
-        taskServices.create(taskName, createDate);
+        taskServices.create(taskName, projectId, createDate);
     }
 }

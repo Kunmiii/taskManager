@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.utils.input.ScannerUtil;
 import com.kunmi.taskManager.service.task.TaskServices;
 
 public class DeleteTaskCommand implements Command {
@@ -23,6 +23,7 @@ public class DeleteTaskCommand implements Command {
         System.out.println("====================");
 
         String taskId = ScannerUtil.getString("Enter Task ID: ");
-        taskServices.delete(taskId);
+        String projectId = ScannerUtil.getString("Enter project ID:");
+        taskServices.delete(projectId, taskId);
     }
 }

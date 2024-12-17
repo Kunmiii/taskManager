@@ -1,49 +1,85 @@
 package com.kunmi.taskManager.service.user;
 
-import com.kunmi.taskManager.repository.userRepo.IUserRepository;
-import com.kunmi.taskManager.service.project.ProjectService;
+import com.kunmi.taskManager.exceptions.UserAlreadyExistsException;
+import com.kunmi.taskManager.exceptions.UserNotFoundException;
+import com.kunmi.taskManager.repository.userRepo.UserRepository;
+import com.kunmi.taskManager.utils.validation.ValidationUtils;
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UserServiceImpl implements UserService {
 
-    private final IUserRepository userRepository;
-    private final ProjectService projectService;
+    private final UserRepository userRepository;
+    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
-    public UserServiceImpl(IUserRepository userRepository, ProjectService projectService) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.projectService = projectService;
     }
 
-    public String registerUser(String name, String lastName, String email, String password) {
-        String hashedPassword = hashPassword(password);
-        User user = new User(name, lastName, hashedPassword, email);
+    public String registerUser(String name, String lastName, String password, String email) {
+        try {
+            ValidationUtils.validateInputs(name, "Name");
+            ValidationUtils.validateInputs(lastName, "LastName");
+            ValidationUtils.validateInputs(email, "Email");
+            ValidationUtils.validateInputs(password, "Password");
 
-        if (!userRepository.userExists(user.getEmail())) {
+            boolean userExists = userRepository.userExists(email);
+            ValidationUtils.validateUserExists(userExists, email);
+
+            String hashedPassword = hashPassword(password);
+
+            User user = new User(name, lastName, hashedPassword, email);
             userRepository.saveUser(user);
 
-            return "User registered successfully.";
+            logger.info("User with ID {} registered successfully", user.getId());
+            return "User registered successfully";
+
+        } catch (IllegalArgumentException e ) {
+            logger.error("Validation error during registration: {}", e.getMessage());
+            return e.getMessage();
+        } catch (UserAlreadyExistsException e){
+            logger.error("Error registering user: {}", e.getMessage());
+            return e.getMessage();
+        } catch (Exception e) {
+            logger.error("Unexpected error occur during registration: {}", e.getMessage());
+            throw new RuntimeException("An unexpected error occurred during registration");
         }
-        return "User with the email " + user.getEmail() + " already exist";
     }
 
     public String userLogin(String email, String password) {
-        User user = userRepository.findUserByEmail(email);
+        try {
+            ValidationUtils.validateInputs(email, "Email");
+            ValidationUtils.validateInputs(password, "Password");
 
-        if (user != null) {
-            if (checkPassword(password)) {
-                UserContext.setCurrentUser(user);
-                return "Login successful!";
+            User user = userRepository.findUserByEmail(email);
+            ValidationUtils.validateUserLogin(user);
+
+            if (!checkPassword(password, user.getPassword())) {
+                logger.info("Invalid login attempt for user with email {}", email);
+                return "Invalid email or password";
             }
+
+            UserContext.setCurrentUser(user);
+            logger.info("User with ID {} logged in successfully", user.getId());
+            return "Login successful";
+
+
+        } catch (IllegalArgumentException | UserNotFoundException e) {
+            logger.error("Error occurred: {}", e.getMessage());
+            return e.getMessage();
+        } catch (Exception e) {
+            logger.error("Error occurred while logging in: {}", e.getMessage());
+            throw new RuntimeException("Unexpected error occurred during login");
         }
-        return "Login failed!";
     }
 
     private static String hashPassword(String plaintextPassword) {
         return BCrypt.hashpw(plaintextPassword, BCrypt.gensalt());
     }
 
-    public boolean checkPassword(String plaintextPassword) {
-        return BCrypt.checkpw(plaintextPassword, hashPassword(plaintextPassword));
+    public boolean checkPassword(String plaintextPassword, String storedHash) {
+        return BCrypt.checkpw(plaintextPassword, storedHash);
     }
 }
 

@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.input.scannerUtil.ScannerUtil;
+import com.kunmi.taskManager.utils.input.ScannerUtil;
 import com.kunmi.taskManager.service.task.TaskServices;
 
 public class UpdateTaskCommand implements Command {
@@ -22,8 +22,9 @@ public class UpdateTaskCommand implements Command {
         System.out.println("====================");
 
         String taskId = ScannerUtil.getString("Enter Task ID: ");
+        String projectId = ScannerUtil.getString("Enter Project ID: ");
         String newTaskName = ScannerUtil.getString("Enter new task name: ");
 
-        taskServices.update(taskId, newTaskName);
+        taskServices.update(projectId, taskId, newTaskName);
     }
 }
