@@ -63,6 +63,7 @@ public class UserServiceImpl implements UserService {
             }
 
             UserContext.setCurrentUser(user);
+
             logger.info("User with ID {} logged in successfully", user.getId());
             return "Login successful";
 
