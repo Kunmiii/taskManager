@@ -4,6 +4,7 @@ import com.kunmi.taskManager.exceptions.UserAlreadyExistsException;
 import com.kunmi.taskManager.exceptions.UserNotFoundException;
 import com.kunmi.taskManager.repository.userRepo.UserRepository;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
+import lombok.SneakyThrows;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +48,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @SneakyThrows
     public String userLogin(String email, String password) {
         try {
             ValidationUtils.validateInputs(email, "Email");
             ValidationUtils.validateInputs(password, "Password");
 
-            User user = userRepository.findUserByEmail(email);
+            User user = userRepository.getUser(email);
             ValidationUtils.validateUserLogin(user);
 
             if (!checkPassword(password, user.getPassword())) {

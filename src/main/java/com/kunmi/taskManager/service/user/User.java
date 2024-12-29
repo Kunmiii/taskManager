@@ -31,4 +31,9 @@ public class User {
         return String.valueOf(idCounter.getAndIncrement());
     }
 
+    public static User fromString(String data) {
+        String[] parts = data.split(",");
+        return new User(parts[0], parts[1], parts[2], parts[3]);
+    }
+
 }
