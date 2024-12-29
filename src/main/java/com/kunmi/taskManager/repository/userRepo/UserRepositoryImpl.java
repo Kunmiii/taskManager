@@ -20,14 +20,18 @@ public class UserRepositoryImpl implements UserRepository {
             if (userData != null) {
                 return User.fromString(userData);
             }
+        } catch (Exception e) {
+            log.warn("Failed to get user from Redis, falling back to database:{}", e.getMessage());
         }
         return null;
     }
 
     public void saveUserToRedis(User user) {
-        try(Jedis jedis = RedisUtil.getJedis()) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
             jedis.set(user.getEmail(), user.toString());
             jedis.expire(user.getEmail(), 3600);
+        } catch (Exception e) {
+            log.error("Failed to save user to Redis: {}", e.getMessage());
         }
     }
 
@@ -53,8 +57,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error retrieving record: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error retrieving record: {}",  e.getMessage());
         }
         return null;
     }
@@ -62,14 +65,6 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void saveUserToDatabase(User user) {
         //userMemory.put(user.getEmail(), user);
-
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection()) {
-            System.out.println("Database connected successfully!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-
         String insertSQL = "insert into users (firstName, lastName, password, email) " +
                 "values(?, ?, ?, ?)";
 
@@ -86,7 +81,7 @@ public class UserRepositoryImpl implements UserRepository {
             log.info("record created successfully");
 
         } catch (SQLException e) {
-            System.err.println("Error creating record: " + e.getMessage());
+            log.error("Error creating record: {}", e.getMessage());
         }
     }
 
@@ -121,7 +116,7 @@ public class UserRepositoryImpl implements UserRepository {
                 return resultSet.next();
             }
         } catch (SQLException e) {
-            System.err.println("Error fetching record: " + e.getMessage());
+            log.error("Error fetching record: {}", e.getMessage());
         }
 
         return false;

@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 public class DatabaseUtil {
 
@@ -13,8 +12,7 @@ public class DatabaseUtil {
     static {
         try {
             HikariConfig config = new HikariConfig();
-
-            config.setJdbcUrl("jdbc:postgresql://127.0.0.1:5432/TaskManager");
+            config.setJdbcUrl("jdbc:postgresql://localhost:5432/TaskManager");
             config.setUsername("postgres");
             config.setPassword("Kunmi568.3");
             config.setDriverClassName("org.postgresql.Driver");
@@ -23,16 +21,12 @@ public class DatabaseUtil {
             config.setMinimumIdle(2);
             config.setIdleTimeout(30000);
             config.setMaxLifetime(1800000);
-            config.setConnectionTimeout(30000);
-            config.setValidationTimeout(5000);
+            config.setConnectionTimeout(10000);
 
             dataSource = new HikariDataSource(config);
         } catch (Exception e) {
             throw new ExceptionInInitializerError("Database connection pool initialized failed: " + e.getMessage());
         }
-    }
-
-    public DatabaseUtil() throws SQLException {
     }
 
     public static DataSource getDataSource() {
