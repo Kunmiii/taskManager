@@ -4,6 +4,7 @@ import com.kunmi.taskManager.exceptions.UserAlreadyExistsException;
 import com.kunmi.taskManager.exceptions.UserNotFoundException;
 import com.kunmi.taskManager.repository.userRepo.UserRepository;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
+import lombok.SneakyThrows;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ public class UserServiceImpl implements UserService {
 
             String hashedPassword = hashPassword(password);
 
-            User user = new User(name, lastName, hashedPassword, email);
+            User user = new User (name, lastName, hashedPassword, email);
             userRepository.saveUser(user);
 
             logger.info("User with ID {} registered successfully", user.getId());
@@ -47,12 +48,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @SneakyThrows
     public String userLogin(String email, String password) {
         try {
             ValidationUtils.validateInputs(email, "Email");
             ValidationUtils.validateInputs(password, "Password");
 
-            User user = userRepository.findUserByEmail(email);
+            User user = userRepository.getUser(email);
             ValidationUtils.validateUserLogin(user);
 
             if (!checkPassword(password, user.getPassword())) {
@@ -61,6 +63,7 @@ public class UserServiceImpl implements UserService {
             }
 
             UserContext.setCurrentUser(user);
+
             logger.info("User with ID {} logged in successfully", user.getId());
             return "Login successful";
 

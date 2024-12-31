@@ -126,9 +126,9 @@ class UserServiceImplTest {
         String email = "imisi@test.com";
         String password = "12345";
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        User mockUser = new User("Imisioluwanimi", "Oke", hashedPassword, email);
+        User mockUser = new User( "Imisioluwanimi", "Oke", hashedPassword, email);
 
-        when(userRepository.findUserByEmail(email)).thenReturn(mockUser);
+        when(userRepository.getUser(email)).thenReturn(mockUser);
         validationUtilsMock.when(() -> ValidationUtils.validateInputs(email, "email"))
                 .thenAnswer(invocation -> null);
         validationUtilsMock.when(() -> ValidationUtils.validateInputs(password, "password"))
@@ -153,7 +153,7 @@ class UserServiceImplTest {
         String result = userService.userLogin(email, password);
 
         assertEquals("Email must be provided", result);
-        verify(userRepository, never()).findUserByEmail(anyString());
+        verify(userRepository, never()).getUser(anyString());
 
     }
 
@@ -162,7 +162,7 @@ class UserServiceImplTest {
         String email = "fakeuser@test.com";
         String password = "12345";
 
-        when(userRepository.findUserByEmail(email)).thenReturn(null);
+        when(userRepository.getUser(email)).thenReturn(null);
         validationUtilsMock.when(() -> ValidationUtils.validateInputs(anyString(), anyString()))
                 .thenAnswer(invocation -> null);
         validationUtilsMock.when(() -> ValidationUtils.validateUserLogin(null))
@@ -171,7 +171,7 @@ class UserServiceImplTest {
         String result = userService.userLogin(email, password);
 
         assertEquals("User does not have an account", result);
-        verify(userRepository, times(1)).findUserByEmail(email);
+        verify(userRepository, times(1)).getUser(email);
     }
 
     @Test
@@ -181,7 +181,7 @@ class UserServiceImplTest {
         String hashedPassword = BCrypt.hashpw("12345", BCrypt.gensalt());
         User mockUser = new User("Imisioluwanimi", "Oke", hashedPassword, email);
 
-        when(userRepository.findUserByEmail(email)).thenReturn(mockUser);
+        when(userRepository.getUser(email)).thenReturn(mockUser);
         validationUtilsMock.when(() -> ValidationUtils.validateInputs(anyString(), anyString()))
                 .thenAnswer(invocation -> null);
         validationUtilsMock.when(() -> ValidationUtils.validateUserLogin(mockUser))
