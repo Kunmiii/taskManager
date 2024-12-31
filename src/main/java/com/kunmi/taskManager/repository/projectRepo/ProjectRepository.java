@@ -12,4 +12,5 @@ public interface ProjectRepository {
     void removeProject(String projectName, String userID);
     void removeAllProjectsForUser(String userid);
     boolean existsById(String projectId);
+    void updateProject(String projectId, Project project);
 }

@@ -64,7 +64,7 @@ public class ProjectServiceImpl implements ProjectService {
             retrievedProject.setName(newProjectName);
             retrievedProject.setCreateDate(LocalDateTime.now());
 
-            projectRepository.addProject(loggedInUser.getId(), retrievedProject);
+            projectRepository.updateProject(loggedInUser.getId(), retrievedProject);
 
             logger.info("Project updated successfully: ID = {}", projectId);
         } catch (NullPointerException e) {

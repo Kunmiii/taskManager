@@ -126,7 +126,7 @@ class UserServiceImplTest {
         String email = "imisi@test.com";
         String password = "12345";
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        User mockUser = new User("Imisioluwanimi", "Oke", hashedPassword, email);
+        User mockUser = new User( "Imisioluwanimi", "Oke", hashedPassword, email);
 
         when(userRepository.getUser(email)).thenReturn(mockUser);
         validationUtilsMock.when(() -> ValidationUtils.validateInputs(email, "email"))

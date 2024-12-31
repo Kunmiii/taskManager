@@ -29,7 +29,7 @@ public class UserRepositoryImpl implements UserRepository {
     public void saveUserToRedis(User user) {
         try (Jedis jedis = RedisUtil.getJedis()) {
             jedis.set(user.getEmail(), user.toString());
-            jedis.expire(user.getEmail(), 3600);
+            jedis.expire(user.getEmail(), 60);
         } catch (Exception e) {
             log.error("Failed to save user to Redis: {}", e.getMessage());
         }
@@ -47,12 +47,14 @@ public class UserRepositoryImpl implements UserRepository {
 
             try(var resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
+
                     String firstName = resultSet.getString("firstName");
                     String lastName = resultSet.getString("lastName");
                     String password = resultSet.getString("password");
                     String retrievedEmail = resultSet.getString("email");
+                    String retrievedUserId = String.valueOf(resultSet.getInt("id"));
 
-                    return new User(firstName,lastName, password, retrievedEmail);
+                    return new User(retrievedUserId, firstName, lastName, password, retrievedEmail);
                 }
             }
 
@@ -77,7 +79,6 @@ public class UserRepositoryImpl implements UserRepository {
             preparedStatement.setString(4, user.getEmail());
 
             preparedStatement.execute();
-            System.out.println("Records created successfully");
             log.info("record created successfully");
 
         } catch (SQLException e) {
@@ -87,7 +88,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     public void saveUser(User user) {
         saveUserToDatabase(user);
-        saveUserToRedis(user);
+        //saveUserToRedis(user);
     }
 
     public User getUser(String email) {

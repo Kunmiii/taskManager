@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
 
             String hashedPassword = hashPassword(password);
 
-            User user = new User(name, lastName, hashedPassword, email);
+            User user = new User (name, lastName, hashedPassword, email);
             userRepository.saveUser(user);
 
             logger.info("User with ID {} registered successfully", user.getId());

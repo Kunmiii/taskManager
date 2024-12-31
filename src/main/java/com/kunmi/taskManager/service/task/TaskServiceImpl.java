@@ -71,6 +71,8 @@ public class TaskServiceImpl implements TaskServices {
 
             task.setName(taskName);
             task.setCreateDate(LocalDateTime.now());
+
+            taskRepository.updateTask(task, projectId);
             logger.info("Task with id {} was updated successfully:", taskId);
 
         } catch (TaskNotFoundException | IllegalArgumentException e) {
@@ -85,11 +87,10 @@ public class TaskServiceImpl implements TaskServices {
     public List<Task> findAll(String projectId) {
 
         try {
-
             ValidationUtils.validateInputs(projectId, "projectId");
+
             boolean projectExist = projectRepository.existsById(projectId);
             ValidationUtils.validateProjectExists(projectExist, projectId);
-
 
             List<Task> projectTask = taskRepository.getProjectTasks(projectId);
             if (projectTask == null || projectTask.isEmpty()) {
