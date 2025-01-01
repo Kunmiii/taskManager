@@ -123,7 +123,7 @@ class ProjectServiceImplTest {
             projectService.update(projectID, newProjectName);
 
             assertEquals("Project name should be updated to the new value", newProjectName, project.getName());
-            verify(projectRepository, times(1)).addProject(eq(loggedInUser.getId()), any(Project.class));
+            verify(projectRepository, times(1)).updateProject(eq(loggedInUser.getId()), any(Project.class));
 
 
         } catch (ProjectNotFoundException e) {
