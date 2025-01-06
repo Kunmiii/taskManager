@@ -13,8 +13,7 @@ import java.sql.SQLException;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
-    //private final Map<String, User> userMemory = new HashMap<>();
-    public User getUserFromRedis(String email) {
+    private User getUserFromRedis(String email) {
         try (Jedis jedis = RedisUtil.getJedis()) {
             String userData = jedis.get(email);
             if (userData != null) {
@@ -26,7 +25,7 @@ public class UserRepositoryImpl implements UserRepository {
         return null;
     }
 
-    public void saveUserToRedis(User user) {
+    private void saveUserToRedis(User user) {
         try (Jedis jedis = RedisUtil.getJedis()) {
             jedis.set(user.getEmail(), user.toString());
             jedis.expire(user.getEmail(), 60);
@@ -37,7 +36,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User getUserFromDatabase(String email) {
-        //return userMemory.get(email);
+
         String selectSQL = "select * from users where email = ?";
 
         try(Connection connection = DatabaseUtil.getDataSource().getConnection();
@@ -66,7 +65,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void saveUserToDatabase(User user) {
-        //userMemory.put(user.getEmail(), user);
+
         String insertSQL = "insert into users (firstName, lastName, password, email) " +
                 "values(?, ?, ?, ?)";
 
@@ -88,7 +87,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     public void saveUser(User user) {
         saveUserToDatabase(user);
-        //saveUserToRedis(user);
+        saveUserToRedis(user);
     }
 
     public User getUser(String email) {
@@ -105,7 +104,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public boolean userExists(String email) {
-        //return userMemory.containsKey(email);
+
         String selectSql = "select email from users where email = ?";
 
         try(Connection connection = DatabaseUtil.getDataSource().getConnection();

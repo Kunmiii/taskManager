@@ -28,4 +28,10 @@ public class Project {
     private static String getNextProjectId() {
         return String.valueOf(projectIdCounter.getAndIncrement());
     }
+
+    public static Project fromString(String projectData) {
+        String[] parts = projectData.split(",");
+        LocalDateTime dateTime = LocalDateTime.parse(parts[2]);
+        return new Project(parts[0], parts[1], dateTime, parts[3]);
+    }
 }

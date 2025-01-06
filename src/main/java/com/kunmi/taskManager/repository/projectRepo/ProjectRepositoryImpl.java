@@ -3,24 +3,25 @@ package com.kunmi.taskManager.repository.projectRepo;
 import com.kunmi.taskManager.exceptions.ProjectNotFoundException;
 import com.kunmi.taskManager.service.project.Project;
 import com.kunmi.taskManager.utils.db.DatabaseUtil;
+import com.kunmi.taskManager.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisException;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class ProjectRepositoryImpl implements ProjectRepository {
 
     private final Logger log = LoggerFactory.getLogger(ProjectRepositoryImpl.class);
-    private final Map<String, Map<String, Project>> projectRepo = new HashMap<>();
 
     @Override
-    public void addProject(String userId, Project project) {
-//        projectRepo
-//                .computeIfAbsent(userId, k -> new HashMap<>())
-//                .put(project.getId(), project);
-//        log.info("Project is called and being added");
+    public void addProjectToDatabase(String userId, Project project) {
 
         String insertSQL = "insert into project (project_name, create_date, user_id) " +
                 "values(?, ?, ?)";
@@ -40,9 +41,50 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
     }
 
+    private void addProjectToRedis(Project project) {
+        try (Jedis jedis  = RedisUtil.getJedis()) {
+            jedis.set(project.getId(), project.toString());
+            jedis.expire(project.getId(), 60);
+        } catch (JedisException e) {
+            log.error("Failed to save project to redis: {}", e.getMessage());
+        }
+    }
+
+    private Project getProjectFromRedis(String projectId) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            String projectData = jedis.get(projectId);
+            if (projectData != null) {
+                return Project.fromString(projectData);
+            }
+        } catch (JedisException e) {
+            log.error("Failed to get project from Redis, falling back to database: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private void updateProjectInRedis(Project project) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            if (jedis.exists(project.getId())) {
+                jedis.set(project.getId(), project.toString());
+                jedis.expire(project.getId(), 60);
+                log.info("Project with ID {} successfully updated in Redis cache", project.getId());
+            } else {
+                log.warn("Project with ID {} not found in Redis cache. Adding it now.", project.getId());
+                addProjectToRedis(project);
+            }
+        } catch (JedisException e) {
+            log.error("Failed to update project in Redis: {}",  e.getMessage());
+        }
+    }
+
+    public void saveProject(String userId, Project project) {
+        addProjectToDatabase(userId, project);
+        addProjectToRedis(project);
+    }
+
     @Override
-    public Project getProject(String projectId, String userId) throws ProjectNotFoundException {
-        //Map<String, Project> userProjects = projectRepo.get(userId);
+    public Project getProjectFromDatabase(String projectId, String userId) throws ProjectNotFoundException {
+
         String selectSQL = "select * from project where project_id = ? and user_id = ?";
 
         try (Connection connection = DatabaseUtil.getDataSource().getConnection();
@@ -66,16 +108,12 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             log.error("An error occurred while fetching project {}", e.getMessage());
             throw new RuntimeException("Error fetching project from the database" + e.getMessage());
         }
-
-        //return (userProjects != null) ? userProjects.get(projectId) : null;
-        throw new ProjectNotFoundException("Project not found with the ID: " +  projectId);
-
+        return null;
     }
 
     @Override
     public List<Project> getUserProjects(String userId) {
-//        Map<String, Project> userProjects = projectRepo.get(userId);
-//        return (userProjects != null) ? new ArrayList<>(userProjects.values()) : null;
+
         String selectSQL = "select * from project where user_id = ?";
 
         List<Project> projectList = new ArrayList<>();
@@ -101,21 +139,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             throw new RuntimeException("Error fetching project from the database" + e.getMessage());
         }
 
-        //return (userProjects != null) ? userProjects.get(projectId) : null;
         return projectList.isEmpty() ? Collections.emptyList() : projectList;
     }
 
     @Override
     public void removeProject(String projectId, String userId) {
-//        Map<String, Project> userProjects = projectRepo.get(userId);
-//        if (userProjects != null) {
-//            userProjects.remove(projectId);
-//            log.info("Project removed successfully");
-//
-//            if (userProjects.isEmpty()) {
-//                projectRepo.remove(userId);
-//            }
-//        }
 
         String deleteSQL = "delete from project where project_id = ? and user_id = ?";
 
@@ -128,6 +156,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
             int rowsAffected = preparedStatement.executeUpdate();
 
             if (rowsAffected > 0) {
+                removeProjectFromRedis(projectId);
                 log.info("Project with ID {} for user {} removed successfully", projectId, userId);
             } else {
                 log.warn("No project found with ID {} for user {}", projectId, userId);
@@ -138,12 +167,23 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         }
     }
 
+    private void removeProjectFromRedis(String projectId) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            Long result = jedis.del(projectId);
+
+            if (result != null) {
+                log.info("Project with ID {} removed successfully fromRedis Cache", projectId);
+            } else {
+                log.warn("Project with ID {} not found in Redis cache", projectId);
+            }
+        } catch (JedisException e) {
+            log.error("Failed to remove project from Redis: {}", e.getMessage());
+        }
+    }
+
     @Override
     public void removeAllProjectsForUser(String userid)
     {
-        //projectRepo.remove(userid);
-        //log.info("All Projects have been removed successfully");
-
         String deleteSQL = "delete from project where user_id = ?";
 
         try (Connection connection = DatabaseUtil.getDataSource().getConnection();
@@ -183,11 +223,6 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         } catch (SQLException e) {
             log.error("error occurred while fetching project {}", e.getMessage());
         }
-//        for (Map<String, Project> userProjects : projectRepo.values()) {
-//            if (userProjects.containsKey(projectId)) {
-//                return true;
-//            }
-//        }
         return false;
     }
 
@@ -206,8 +241,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
             int affectedRows = preparedStatement.executeUpdate();
 
+            updateProjectInRedis(project);
+
             if (affectedRows > 0) {
                 log.info("Project updated successfully: ID = {}", project.getId());
+
             } else {
                 throw new ProjectNotFoundException("No project found with ID: " + project.getId());
             }

@@ -17,14 +17,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class TaskRepositoryImpl implements TaskRepository {
-    //private final Map<String, Map<String, Task>> taskRepo = new HashMap<>();
+
     private final Logger log = LoggerFactory.getLogger(TaskRepositoryImpl.class);
 
     @Override
     public void addTask(String projectId, Task task) {
-//        taskRepo
-//                .computeIfAbsent(projectId, k -> new HashMap<>())
-//                .put(task.getId(), task);
 
         String insertSQL = "insert into task(task_id, task_name, create_date, project_id) values(?, ?, ?, ?)";
 
@@ -48,7 +45,6 @@ public class TaskRepositoryImpl implements TaskRepository {
     @SneakyThrows
     @Override
     public Task getTask(String taskId, String projectId) {
-        //Map<String, Task> projectTask = taskRepo.get(projectId);
 
         String selectSQL = "select * from task where task_id = ? and project_id = ?";
 
@@ -78,7 +74,6 @@ public class TaskRepositoryImpl implements TaskRepository {
     @SneakyThrows
     @Override
     public List<Task> getProjectTasks(String projectId) {
-         //Map<String, Task> projectTask = taskRepo.get(projectId);
 
         List<Task> taskList = new ArrayList<>();
         String selectSQL = "select * from task where project_id = ?";

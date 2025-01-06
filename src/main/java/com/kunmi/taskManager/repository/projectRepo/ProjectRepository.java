@@ -6,11 +6,12 @@ import com.kunmi.taskManager.service.project.Project;
 import java.util.List;
 
 public interface ProjectRepository {
-    void addProject(String userId, Project project);
-    Project getProject(String projectId, String userId) throws ProjectNotFoundException;
+    void addProjectToDatabase(String userId, Project project);
+    Project getProjectFromDatabase(String projectId, String userId) throws ProjectNotFoundException;
     List<Project> getUserProjects(String userId);
     void removeProject(String projectName, String userID);
     void removeAllProjectsForUser(String userid);
     boolean existsById(String projectId);
     void updateProject(String projectId, Project project);
+    void saveProject(String userId, Project project);
 }

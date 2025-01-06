@@ -10,7 +10,6 @@ import lombok.ToString;
 
 public class User {
 
-    //private static final AtomicInteger idCounter = new AtomicInteger(1);
     private final String id;
     private final String firstName;
     private final String lastName;
@@ -33,11 +32,6 @@ public class User {
         this.password = password;
         this.email = email;
     }
-
-
-//    private static String generateId() {
-//        return String.valueOf(idCounter.getAndIncrement());
-//    }
 
     public static User fromString(String data) {
         String[] parts = data.split(",");
