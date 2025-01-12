@@ -55,7 +55,7 @@ public class ProjectServiceImpl implements ProjectService {
             ValidationUtils.validateInputs(projectId, "fieldName");
             ValidationUtils.validateInputs(newProjectName, "NewProjectName");
 
-            Project retrievedProject = projectRepository.getProjectFromDatabase(projectId, loggedInUser.getId());
+            Project retrievedProject = projectRepository.getProject(projectId, loggedInUser.getId());
             ValidationUtils.validateUserProject(retrievedProject, loggedInUser.getId());
 
             retrievedProject.setName(newProjectName);
@@ -102,7 +102,7 @@ public class ProjectServiceImpl implements ProjectService {
             ValidationUtils.validateNotNull(loggedInUser, "Logged-in user");
             ValidationUtils.validateInputs(projectId, "ProjectId");
 
-            Project response = projectRepository.getProjectFromDatabase(projectId, loggedInUser.getId());
+            Project response = projectRepository.getProject(projectId, loggedInUser.getId());
             ValidationUtils.validateUserProject(response, loggedInUser.getId());
 
             projectRepository.removeProject(projectId, loggedInUser.getId());

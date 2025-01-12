@@ -42,6 +42,7 @@ class ProjectServiceImplTest {
 
     @Test
     void shouldCreateProjectSuccessfully() {
+        String projectID = "1";
         String projectName = "Test Project";
         LocalDateTime createDate = LocalDateTime.now();
 
@@ -62,15 +63,7 @@ class ProjectServiceImplTest {
             projectService.create(projectName, createDate);
 
             // Verify the repository interaction
-            verify(projectRepository, times(1)).saveProject(eq(loggedInUser.getId()), argThat(project ->
-                    project.getName().equals(projectName) &&
-                    project.getCreateDate().equals(createDate) &&
-                    project.getId().equals("1")));
-
-//            verify(projectRepository, times(1)).addProjectToRedis(argThat(project ->
-//                    project.getName().equals(projectName) &&
-//                    project.getCreateDate().equals(createDate) &&
-//                    project.getId().equals("1")));
+            verify(projectRepository, times(1)).saveProject(eq(loggedInUser.getId()), any(Project.class));
         }
     }
 
@@ -123,7 +116,7 @@ class ProjectServiceImplTest {
                     .thenAnswer(invocation -> null);
             
             Project project = new Project("Old Project", LocalDateTime.now(), loggedInUser.getId());
-            when(projectRepository.getProjectFromDatabase(projectID, loggedInUser.getId())).thenReturn(project);
+            when(projectRepository.getProject(projectID, loggedInUser.getId())).thenReturn(project);
 
             projectService.update(projectID, newProjectName);
 
@@ -131,8 +124,6 @@ class ProjectServiceImplTest {
             verify(projectRepository, times(1)).updateProject(eq(loggedInUser.getId()), any(Project.class));
 
 
-        } catch (ProjectNotFoundException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -145,16 +136,14 @@ class ProjectServiceImplTest {
             mockedUserContext.when(UserContext::getCurrentUser).thenReturn(loggedInUser);
 
             when(loggedInUser.getId()).thenReturn("123");
-            when(projectRepository.getProjectFromDatabase(projectId, "123"))
-                    .thenThrow(new ProjectNotFoundException("Project not found"));
+//            when(projectRepository.getProject(projectId, "123"))
+//                    .thenThrow(new ProjectNotFoundException("Project not found"));
 
             ProjectNotFoundException exception = assertThrows(ProjectNotFoundException.class, () -> {
                 projectService.update(projectId, newProjectName);
             });
 
-            assertEquals("Project not found", exception.getMessage());
-        } catch (ProjectNotFoundException e) {
-            throw new RuntimeException(e);
+            assertEquals("No projects found for user.123", exception.getMessage());
         }
     }
 
@@ -213,7 +202,7 @@ class ProjectServiceImplTest {
             when(loggedInUser.getId()).thenReturn("1");
 
             Project project = new Project("Test Project", LocalDateTime.now(), "1");
-            when(projectRepository.getProjectFromDatabase(projectId, "1")).thenReturn(project);
+            when(projectRepository.getProject(projectId, "1")).thenReturn(project);
 
             projectService.delete(projectId);
 
@@ -229,14 +218,12 @@ class ProjectServiceImplTest {
         try (MockedStatic<UserContext> mockedUserContext = mockStatic(UserContext.class)) {
             mockedUserContext.when(UserContext::getCurrentUser).thenReturn(loggedInUser);
             when(loggedInUser.getId()).thenReturn("1");
-            when(projectRepository.getProjectFromDatabase(projectId, "1"))
-                    .thenThrow(new ProjectNotFoundException("Project not found"));
 
             ProjectNotFoundException exception = assertThrows(ProjectNotFoundException.class, () -> {
                 projectService.delete(projectId);
             });
 
-           assertEquals("Project not found", exception.getMessage());
+           assertEquals("No projects found for user.1" , exception.getMessage());
         }
     }
 

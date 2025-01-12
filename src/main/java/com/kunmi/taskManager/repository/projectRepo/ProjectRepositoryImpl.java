@@ -9,106 +9,61 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisException;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ProjectRepositoryImpl implements ProjectRepository {
 
     private final Logger log = LoggerFactory.getLogger(ProjectRepositoryImpl.class);
 
     @Override
-    public void addProjectToDatabase(String userId, Project project) {
-
-        String insertSQL = "insert into project (project_name, create_date, user_id) " +
-                "values(?, ?, ?)";
-
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(insertSQL)) {
-
-            preparedStatement.setString(1, project.getName());
-            preparedStatement.setTimestamp(2, Timestamp.valueOf(project.getCreateDate()));
-            preparedStatement.setInt(3, Integer.parseInt(userId));
-
-            preparedStatement.executeUpdate();
-            log.info("Project added successfully");
-        } catch (SQLException e) {
-            log.error("Error adding projects: {}",  e.getMessage());
-        }
-
-    }
-
-    private void addProjectToRedis(Project project) {
-        try (Jedis jedis  = RedisUtil.getJedis()) {
-            jedis.set(project.getId(), project.toString());
-            jedis.expire(project.getId(), 60);
-        } catch (JedisException e) {
-            log.error("Failed to save project to redis: {}", e.getMessage());
-        }
-    }
-
-    private Project getProjectFromRedis(String projectId) {
-        try (Jedis jedis = RedisUtil.getJedis()) {
-            String projectData = jedis.get(projectId);
-            if (projectData != null) {
-                return Project.fromString(projectData);
-            }
-        } catch (JedisException e) {
-            log.error("Failed to get project from Redis, falling back to database: {}", e.getMessage());
-        }
-        return null;
-    }
-
-    private void updateProjectInRedis(Project project) {
-        try (Jedis jedis = RedisUtil.getJedis()) {
-            if (jedis.exists(project.getId())) {
-                jedis.set(project.getId(), project.toString());
-                jedis.expire(project.getId(), 60);
-                log.info("Project with ID {} successfully updated in Redis cache", project.getId());
-            } else {
-                log.warn("Project with ID {} not found in Redis cache. Adding it now.", project.getId());
-                addProjectToRedis(project);
-            }
-        } catch (JedisException e) {
-            log.error("Failed to update project in Redis: {}",  e.getMessage());
-        }
-    }
-
     public void saveProject(String userId, Project project) {
         addProjectToDatabase(userId, project);
         addProjectToRedis(project);
     }
 
     @Override
-    public Project getProjectFromDatabase(String projectId, String userId) throws ProjectNotFoundException {
+    public Project getProject(String projectId, String userId) {
+        Project project = getProjectFromRedis(projectId);
 
-        String selectSQL = "select * from project where project_id = ? and user_id = ?";
+        if (project == null) {
+            project = getProjectFromDataBase(projectId, userId);
+
+            addProjectToRedis(project);
+        }
+        return project;
+    }
+
+    @Override
+    public void updateProject(String userId, Project project) {
+
+        String updateSQL = "update project set project_name = ?, create_date = ? where project_id = ? and user_id = ?";
 
         try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(selectSQL)) {
+             var preparedStatement = connection.prepareStatement(updateSQL)) {
 
-            preparedStatement.setInt(1, Integer.parseInt(projectId));
-            preparedStatement.setInt(2, Integer.parseInt(userId));
+            preparedStatement.setString(1, project.getName());
+            preparedStatement.setTimestamp(2, Timestamp.valueOf(project.getCreateDate()));
+            preparedStatement.setInt(3, Integer.parseInt(project.getId()));
+            preparedStatement.setInt(4, Integer.parseInt(userId));
 
-            try(ResultSet rs = preparedStatement.executeQuery()) {
-                if (rs.next()) {
-                    String pID = String.valueOf(rs.getInt(1));
-                    String projectName = rs.getString(2);
-                    LocalDateTime createDate = rs.getTimestamp(3).toLocalDateTime();
-                    String uId = String.valueOf(rs.getInt(4));
+            int affectedRows = preparedStatement.executeUpdate();
 
-                    return new Project(pID, projectName, createDate, uId);
-                }
+            updateProjectInRedis(project);
+
+            if (affectedRows > 0) {
+                log.info("Project updated successfully: ID = {}", project.getId());
+
+            } else {
+                throw new ProjectNotFoundException("No project found with ID: " + project.getId());
             }
-
-        } catch (SQLException e) {
-            log.error("An error occurred while fetching project {}", e.getMessage());
-            throw new RuntimeException("Error fetching project from the database" + e.getMessage());
+        } catch (SQLException | ProjectNotFoundException e) {
+            log.error("An error occurred while updating project: {}", e.getMessage());
+            throw new RuntimeException("Error updating project in the database", e);
         }
-        return null;
     }
 
     @Override
@@ -122,17 +77,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
              var preparedStatement = connection.prepareStatement(selectSQL)) {
 
             preparedStatement.setInt(1, Integer.parseInt(userId));
-
-            try(ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
-                    String pID = String.valueOf(rs.getInt(1));
-                    String projectName = rs.getString(2);
-                    LocalDateTime createDate = rs.getTimestamp(3).toLocalDateTime();
-                    String uId = String.valueOf(rs.getInt(4));
-
-                    projectList.add(new Project(pID, projectName, createDate, uId));
-                }
-            }
+            convertToProjectList(preparedStatement, projectList);
 
         } catch (SQLException e) {
             log.error("Error occurred while fetching project {}", e.getMessage());
@@ -148,7 +93,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         String deleteSQL = "delete from project where project_id = ? and user_id = ?";
 
         try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(deleteSQL)) {
+             var preparedStatement = connection.prepareStatement(deleteSQL)) {
 
             preparedStatement.setInt(1, Integer.parseInt(projectId));
             preparedStatement.setInt(2, Integer.parseInt(userId));
@@ -164,20 +109,6 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
         } catch (SQLException e) {
             log.error("An error encountered while removing the project: {}", e.getMessage());
-        }
-    }
-
-    private void removeProjectFromRedis(String projectId) {
-        try (Jedis jedis = RedisUtil.getJedis()) {
-            Long result = jedis.del(projectId);
-
-            if (result != null) {
-                log.info("Project with ID {} removed successfully fromRedis Cache", projectId);
-            } else {
-                log.warn("Project with ID {} not found in Redis cache", projectId);
-            }
-        } catch (JedisException e) {
-            log.error("Failed to remove project from Redis: {}", e.getMessage());
         }
     }
 
@@ -226,32 +157,139 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         return false;
     }
 
-    @Override
-    public void updateProject(String userId, Project project) {
+    private void addProjectToDatabase(String userId, Project project) {
 
-        String updateSQL = "update project set project_name = ?, create_date = ? where project_id = ? and user_id = ?";
+        String insertSQL = "insert into project (project_name, create_date, user_id) " +
+                "values(?, ?, ?)";
 
         try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(updateSQL)) {
+             var preparedStatement = connection.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, project.getName());
             preparedStatement.setTimestamp(2, Timestamp.valueOf(project.getCreateDate()));
-            preparedStatement.setInt(3, Integer.parseInt(project.getId()));
-            preparedStatement.setInt(4, Integer.parseInt(userId));
+            preparedStatement.setInt(3, Integer.parseInt(userId));
 
             int affectedRows = preparedStatement.executeUpdate();
-
-            updateProjectInRedis(project);
-
             if (affectedRows > 0) {
-                log.info("Project updated successfully: ID = {}", project.getId());
-
-            } else {
-                throw new ProjectNotFoundException("No project found with ID: " + project.getId());
+                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        String generatedId = String.valueOf(generatedKeys.getInt(1));
+                        project.setId(generatedId);
+                        log.info("Project added successfully with ID: {}", generatedId);
+                    }
+                }
             }
-        } catch (SQLException | ProjectNotFoundException e) {
-            log.error("An error occurred while updating project: {}", e.getMessage());
-            throw new RuntimeException("Error updating project in the database", e);
+
+        } catch (SQLException e) {
+            log.error("Error adding projects: {}",  e.getMessage());
         }
     }
+
+    private void addProjectToRedis(Project project) {
+        if (project == null || project.getId() == null) {
+            log.error("Failed to save project to Redis: Project or Project ID is null");
+            return;
+        }
+
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            jedis.set(project.getId(), project.toString());
+            log.info("Project cached in Redis for ID: {}", project.getId());
+        } catch (JedisException e) {
+            log.error("Failed to save project to Redis for ID: {}. Error: {}", project.getId(), e.getMessage());
+        }
+    }
+
+    private Project getProjectFromRedis(String projectId) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            String projectData = jedis.get(projectId);
+            if (projectData != null) {
+                return Project.fromString(projectData);
+            }
+        } catch (JedisException e) {
+            log.error("Failed to get project from Redis, falling back to database: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private Project getProjectFromDataBase(String projectId, String userId) {
+
+        String selectSQL = "select * from project where project_id = ? and user_id = ?";
+
+        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
+             var preparedStatement = connection.prepareStatement(selectSQL)) {
+
+            preparedStatement.setInt(1, Integer.parseInt(projectId));
+            preparedStatement.setInt(2, Integer.parseInt(userId));
+
+            Project pID = convertToProject(preparedStatement);
+            if (pID != null) {
+                return pID;
+            } else {
+                throw new ProjectNotFoundException("Project with ID " + projectId + " not found for user " + userId);
+            }
+
+        } catch (SQLException | ProjectNotFoundException e) {
+            log.error("An error occurred while fetching project {}", e.getMessage());
+            throw new RuntimeException("Error fetching project from the database" + e.getMessage());
+        }
+    }
+
+    private void updateProjectInRedis(Project project) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            if (jedis.exists(project.getId())) {
+                jedis.set(project.getId(), project.toString());
+                jedis.expire(project.getId(), 60);
+                log.info("Project with ID {} successfully updated in Redis cache", project.getId());
+            } else {
+                log.warn("Project with ID {} not found in Redis cache. Adding it now.", project.getId());
+                addProjectToRedis(project);
+            }
+        } catch (JedisException e) {
+            log.error("Failed to update project in Redis: {}",  e.getMessage());
+        }
+    }
+
+    private void removeProjectFromRedis(String projectId) {
+        try (Jedis jedis = RedisUtil.getJedis()) {
+            Long result = jedis.del(projectId);
+
+            if (result != null) {
+                log.info("Project with ID {} removed successfully fromRedis Cache", projectId);
+            } else {
+                log.warn("Project with ID {} not found in Redis cache", projectId);
+            }
+        } catch (JedisException e) {
+            log.error("Failed to remove project from Redis: {}", e.getMessage());
+        }
+    }
+
+    private void convertToProjectList(PreparedStatement preparedStatement, List<Project> projectList) throws SQLException {
+        try(ResultSet rs = preparedStatement.executeQuery()) {
+            while (rs.next()) {
+                String pID = String.valueOf(rs.getInt(1));
+                String projectName = rs.getString(2);
+                LocalDateTime createDate = rs.getTimestamp(3).toLocalDateTime();
+                String uId = String.valueOf(rs.getInt(4));
+
+                projectList.add(new Project(pID, projectName, createDate, uId));
+            }
+        }
+    }
+
+    private Project convertToProject(PreparedStatement preparedStatement) throws SQLException {
+        try(ResultSet rs = preparedStatement.executeQuery()) {
+            if (rs.next()) {
+                String pID = String.valueOf(rs.getInt(1));
+                String projectName = rs.getString(2);
+                LocalDateTime createDate = rs.getTimestamp(3).toLocalDateTime();
+                String uId = String.valueOf(rs.getInt(4));
+
+                return new Project(pID, projectName, createDate, uId);
+            }
+        }
+        return null;
+    }
+
+
+
 }
