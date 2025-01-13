@@ -18,7 +18,7 @@ public class TaskServiceImpl implements TaskServices {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
-    private final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
     public TaskServiceImpl(TaskRepository taskRepository, ProjectRepository projectRepository) {
         this.taskRepository = taskRepository;

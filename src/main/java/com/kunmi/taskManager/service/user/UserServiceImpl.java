@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;

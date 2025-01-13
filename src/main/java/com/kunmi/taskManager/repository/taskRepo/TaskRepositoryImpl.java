@@ -18,7 +18,7 @@ import java.util.List;
 
 public class TaskRepositoryImpl implements TaskRepository {
 
-    private final Logger log = LoggerFactory.getLogger(TaskRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(TaskRepositoryImpl.class);
 
     @Override
     public void addTask(String projectId, Task task) {
@@ -103,16 +103,6 @@ public class TaskRepositoryImpl implements TaskRepository {
 
     @Override
     public void removeTask(String taskId, String projectId) {
-//        Map<String, Task> projectTask = taskRepo.get(projectId);
-//
-//        if (projectTask != null) {
-//            projectTask.remove(taskId);
-//            System.out.println("Task remove successfully!");
-//
-//            if (projectTask.isEmpty()) {
-//                taskRepo.remove(projectId);
-//            }
-//        }
 
         String deleteSQL = "delete from task where task_id = ? and project_id = ?";
 
@@ -138,8 +128,6 @@ public class TaskRepositoryImpl implements TaskRepository {
 
     @Override
     public void removeAllTask(String projectId) {
-//       taskRepo.remove(projectId);
-//       System.out.println("All tasks have been removed!");
 
         String deleteSQL = "delete from project where user_id = ?";
 
