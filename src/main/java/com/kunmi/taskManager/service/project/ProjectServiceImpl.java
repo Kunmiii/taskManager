@@ -32,10 +32,7 @@ public class ProjectServiceImpl implements ProjectService {
             ValidationUtils.validateNotNull(createDate, "createDate");
 
             Project project = new Project(projectName, createDate, loggedInUser.getId());
-            System.out.println("New project created");
-            projectRepository.addProject(loggedInUser.getId(), project);
-
-            System.out.println("Inside create method - addProject called");
+            projectRepository.saveProject(loggedInUser.getId(), project);
 
             logger.info("Project ID: {}, Project Name: {}, User ID: {}", project.getId(), projectName, loggedInUser.getId());
 
@@ -64,7 +61,7 @@ public class ProjectServiceImpl implements ProjectService {
             retrievedProject.setName(newProjectName);
             retrievedProject.setCreateDate(LocalDateTime.now());
 
-            projectRepository.addProject(loggedInUser.getId(), retrievedProject);
+            projectRepository.updateProject(loggedInUser.getId(), retrievedProject);
 
             logger.info("Project updated successfully: ID = {}", projectId);
         } catch (NullPointerException e) {

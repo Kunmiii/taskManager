@@ -10,4 +10,5 @@ public interface TaskRepository {
     List<Task> getProjectTasks(String projectId);
     void removeTask(String taskId, String projectId);
     void removeAllTask(String projectId);
+    void updateTask(Task task, String projectId);
 }
