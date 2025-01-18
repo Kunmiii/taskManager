@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.service.command;
 
-import com.kunmi.taskManager.service.project.Project;
+import com.kunmi.taskManager.models.Project;
 import com.kunmi.taskManager.service.project.ProjectService;
 
 import java.util.List;

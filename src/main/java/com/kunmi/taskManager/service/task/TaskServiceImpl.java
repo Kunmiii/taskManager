@@ -2,6 +2,8 @@ package com.kunmi.taskManager.service.task;
 
 import com.kunmi.taskManager.exceptions.ProjectNotFoundException;
 import com.kunmi.taskManager.exceptions.TaskNotFoundException;
+import com.kunmi.taskManager.models.Project;
+import com.kunmi.taskManager.models.Task;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
 import com.kunmi.taskManager.repository.taskRepo.TaskRepository;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
@@ -26,18 +28,21 @@ public class TaskServiceImpl implements TaskServices {
     }
 
     @Override
-    public void create(String taskName, String projectId, LocalDateTime createDate) {
+    public void create(String taskName, Long projectId, LocalDateTime createDate) {
         try {
 
             ValidationUtils.validateInputs(taskName, "taskName");
-            ValidationUtils.validateInputs(projectId, "projectId");
+            ValidationUtils.validateInputs(String.valueOf(projectId), "projectId");
             ValidationUtils.validateNotNull(createDate, "createDate");
+
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new IllegalArgumentException("Project with ID " + projectId + " does not exist"));
 
             boolean projectExists = projectRepository.existsById(projectId);
             ValidationUtils.validateProjectExists(projectExists, projectId);
 
-            Task task = new Task(taskName, createDate, projectId);
-            taskRepository.addTask(projectId, task);
+            Task task = new Task(taskName, createDate, project);
+            taskRepository.addTask(task);
 
             logger.info("Project ID: {} - Task Name: {} created successfully",projectId, taskName);
 
@@ -53,12 +58,12 @@ public class TaskServiceImpl implements TaskServices {
     }
 
     @Override
-    public void update(String projectId, String taskId, String taskName) {
+    public void update(Long projectId, Long taskId, String taskName) {
 
         try {
 
-            ValidationUtils.validateInputs(taskId, "taskId");
-            ValidationUtils.validateInputs(projectId, "projectId");
+            ValidationUtils.validateInputs(String.valueOf(taskId), "taskId");
+            ValidationUtils.validateInputs(String.valueOf(projectId), "projectId");
             ValidationUtils.validateInputs(taskName, "taskName");
 
             boolean projectExist = projectRepository.existsById(projectId);
@@ -69,10 +74,7 @@ public class TaskServiceImpl implements TaskServices {
                 throw new TaskNotFoundException("Task with ID " + taskId + " not found in active projects");
             }
 
-            task.setName(taskName);
-            task.setCreateDate(LocalDateTime.now());
-
-            taskRepository.updateTask(task, projectId);
+            taskRepository.updateTask(task);
             logger.info("Task with id {} was updated successfully:", taskId);
 
         } catch (TaskNotFoundException | IllegalArgumentException e) {
@@ -84,10 +86,10 @@ public class TaskServiceImpl implements TaskServices {
 
     @SneakyThrows
     @Override
-    public List<Task> findAll(String projectId) {
+    public List<Task> findAll(Long projectId) {
 
         try {
-            ValidationUtils.validateInputs(projectId, "projectId");
+            ValidationUtils.validateInputs(String.valueOf(projectId), "projectId");
 
             boolean projectExist = projectRepository.existsById(projectId);
             ValidationUtils.validateProjectExists(projectExist, projectId);
@@ -109,10 +111,10 @@ public class TaskServiceImpl implements TaskServices {
     }
 
     @Override
-    public void delete(String projectId, String taskId) {
+    public void delete(Long projectId, Long taskId) {
 
         try {
-            ValidationUtils.validateInputs(taskId, "taskId");
+            ValidationUtils.validateInputs(String.valueOf(taskId), "taskId");
             boolean projectExist = projectRepository.existsById(projectId);
             ValidationUtils.validateProjectExists(projectExist, projectId);
 

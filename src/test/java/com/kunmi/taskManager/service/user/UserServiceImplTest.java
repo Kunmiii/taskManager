@@ -2,6 +2,7 @@ package com.kunmi.taskManager.service.user;
 
 import com.kunmi.taskManager.exceptions.UserAlreadyExistsException;
 import com.kunmi.taskManager.exceptions.UserNotFoundException;
+import com.kunmi.taskManager.models.User;
 import com.kunmi.taskManager.repository.userRepo.UserRepository;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
 import org.junit.jupiter.api.AfterEach;

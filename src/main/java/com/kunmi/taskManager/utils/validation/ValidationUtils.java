@@ -31,7 +31,7 @@ public class ValidationUtils {
         }
     }
 
-    public static void validateProjectExists(boolean projectExists, String projectId) throws ProjectNotFoundException {
+    public static void validateProjectExists(boolean projectExists, Long projectId) throws ProjectNotFoundException {
         logger.debug("Checking if project ID {} exists in the repository", projectId);
         if (!projectExists) {
             throw new ProjectNotFoundException("Project with ID " + projectId + " does not exist");
@@ -39,14 +39,14 @@ public class ValidationUtils {
         logger.info("Project with ID {} exists", projectId);
     }
 
-    public static void validateUserProjects(Object userProjects, String userId) throws ProjectNotFoundException {
+    public static void validateUserProjects(Object userProjects, Long userId) throws ProjectNotFoundException {
         if (userProjects == null) {
             logger.warn("No projects found for user ID {}", userId);
             throw new ProjectNotFoundException("No projects found for user." + userId);
         }
     }
 
-    public static void validateUserProject(Object userProject, String userID) throws ProjectNotFoundException {
+    public static void validateUserProject(Object userProject, Long userID) throws ProjectNotFoundException {
         if (userProject == null) {
             logger.warn("No project found for user ID {}", userID);
             throw new ProjectNotFoundException("No projects found for user." + userID);

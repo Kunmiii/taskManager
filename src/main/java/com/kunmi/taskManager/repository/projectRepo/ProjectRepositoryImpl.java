@@ -1,35 +1,44 @@
 package com.kunmi.taskManager.repository.projectRepo;
 
-import com.kunmi.taskManager.exceptions.ProjectNotFoundException;
-import com.kunmi.taskManager.service.project.Project;
-import com.kunmi.taskManager.utils.db.DatabaseUtil;
+import com.google.gson.Gson;
+import com.kunmi.taskManager.models.Project;
+import com.kunmi.taskManager.utils.hibernate.HibernateUtil;
 import com.kunmi.taskManager.utils.redis.RedisUtil;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisException;
 
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ProjectRepositoryImpl implements ProjectRepository {
 
     private final Logger log = LoggerFactory.getLogger(ProjectRepositoryImpl.class);
 
     @Override
-    public void saveProject(String userId, Project project) {
-        addProjectToDatabase(userId, project);
+    public void saveProject(Project project) {
+        addProjectToDatabase(project);
         addProjectToRedis(project);
     }
 
     @Override
-    public Project getProject(String projectId, String userId) {
+    public Optional<Project> findById(Long projectId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return Optional.ofNullable(session.createQuery("from Project p where p.id = :projectId", Project.class)
+                    .setParameter("projectId", projectId)
+                    .uniqueResult());
+        }
+    }
+
+    @Override
+    public Project getProject(Long projectId, Long userId) {
         Project project = getProjectFromRedis(projectId);
 
         if (project == null) {
-            project = getProjectFromDataBase(projectId, userId);
+            project = getProjectFromDataBase(projectId);
 
             if (project != null) {
                 addProjectToRedis(project);
@@ -39,181 +48,127 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     }
 
     @Override
-    public List<Project> getUserProjects(String userId) {
+    public List<Project> getUserProjects(Long userId) {
 
-        List<Project> projects = new ArrayList<>();
-        String selectSQL = "select * from project where user_id = ?";
-
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(selectSQL)) {
-
-            preparedStatement.setInt(1, Integer.parseInt(userId));
-            ResultSet rs = preparedStatement.executeQuery();
-
-            while (rs.next()) {
-                projects.add(convertResultSetToProject(rs));
-            }
-
-        } catch (SQLException e) {
-            log.error("Error occurred while fetching project {}", e.getMessage());
-            throw new RuntimeException("Error fetching project from the database" + e.getMessage());
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Project p where p.user.id = :userId", Project.class)
+                    .setParameter("userId", userId)
+                    .list();
+        } catch (Exception e) {
+            log.error("Error fetching projects - {}", e.getMessage());
+            throw e;
         }
-        return projects;
-    }
-
-    private Project getProjectFromDataBase(String projectId, String userId) {
-
-        String selectSQL = "select * from project where project_id = ? and user_id = ?";
-
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(selectSQL)) {
-
-            preparedStatement.setInt(1, Integer.parseInt(projectId));
-            preparedStatement.setInt(2, Integer.parseInt(userId));
-
-            try(ResultSet rs = preparedStatement.executeQuery()) {
-                convertResultSetToProject(rs);
-            }
-
-        } catch (SQLException e) {
-            log.error("An error occurred while fetching project {}", e.getMessage());
-            throw new RuntimeException("Error fetching project from the database" + e.getMessage());
-        }
-        return  null;
-    }
-
-    private Project convertResultSetToProject(ResultSet rs) throws SQLException {
-        String pID = String.valueOf(rs.getInt("project_id"));
-        String projectName = rs.getString("project_name");
-        LocalDateTime createDate = rs.getTimestamp("create_date").toLocalDateTime();
-        String uId = String.valueOf(rs.getInt("user_id"));
-
-        return new Project(pID, projectName, createDate, uId);
     }
 
     @Override
-    public void removeProject(String projectId, String userId) {
+    public void removeProject(Long projectId, Long userId) {
+        Transaction transaction = null;
 
-        String deleteSQL = "delete from project where project_id = ? and user_id = ?";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(deleteSQL)) {
+            int rowsAffected = session.createQuery("delete from Project p where p.id = :projectId")
+                    .setParameter("projectId", projectId)
+                    .executeUpdate();
 
-            preparedStatement.setInt(1, Integer.parseInt(projectId));
-            preparedStatement.setInt(2, Integer.parseInt(userId));
+            transaction.commit();
 
-            int rowsAffected = preparedStatement.executeUpdate();
-
-            if (rowsAffected > 0) {
-                removeProjectFromRedis(projectId);
-                log.info("Project with ID {} for user {} removed successfully", projectId, userId);
+            if (rowsAffected == 0) {
+                log.warn("No project found with ID: {}", projectId);
             } else {
-                log.warn("No project found with ID {} for user {}", projectId, userId);
+                log.info("Project with ID: {} successfully deleted", projectId);
             }
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             log.error("An error encountered while removing the project: {}", e.getMessage());
+            throw e;
         }
     }
 
     @Override
-    public void removeAllProjectsForUser(String userid) {
-        String deleteSQL = "delete from project where user_id = ?";
+    public void removeAllProjectsForUser(Long userId) {
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(deleteSQL)) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
 
-            preparedStatement.setInt(1, Integer.parseInt(userid));
+            String hql = "delete from Project p where p.user.id = :userId";
+            int result = session.createQuery(hql)
+                            .setParameter("userId", userId)
+                            .executeUpdate();
 
-            int rowsAffected = preparedStatement.executeUpdate();
+            transaction.commit();
 
-            if (rowsAffected > 0) {
-                log.info("{} records were removed", rowsAffected);
+            if (result == 0) {
+                log.warn("No project found with the userID {}", userId);
             } else {
-                log.warn("No project found with user ID {}", userid);
+                log.info("{} projects deleted for user ID: {}", result, userId);
             }
-        } catch (SQLException e) {
-            log.error("Error occurred while deleting all project with ID: {}", userid);
+        } catch (Exception e) {
+            log.error("Error occurred while deleting all project with ID: {}", userId);
+            throw e;
         }
     }
 
     @Override
-    public boolean existsById(String projectId) {
-        if (projectId == null || projectId.isBlank()) {
+    public boolean existsById(Long projectId) {
+        if (projectId == null) {
             throw new IllegalArgumentException("Project ID must not be null or blank");
         }
 
-        String selectSQL = "select 1 from project where project_id = ?";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(selectSQL)) {
+        String hql = "from Project p where p.id= :projectId";
 
-            preparedStatement.setInt(1, Integer.parseInt(projectId));
+        Long count = session.createQuery(hql, Project.class)
+                .setParameter("projectId", projectId)
+                .uniqueResult().getId();
 
-            try(ResultSet rs = preparedStatement.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            log.error("error occurred while fetching project {}", e.getMessage());
+        return count != null && count > 0;
         }
-        return false;
     }
 
     @Override
-    public void updateProject(String userId, Project project) {
+    public void updateProject(Project project) {
+        Transaction transaction = null;
 
-        String updateSQL = "update project set project_name = ?, create_date = ? where project_id = ? and user_id = ?";
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(updateSQL)) {
-
-            preparedStatement.setString(1, project.getName());
-            preparedStatement.setTimestamp(2, Timestamp.valueOf(project.getCreateDate()));
-            preparedStatement.setInt(3, Integer.parseInt(project.getId()));
-            preparedStatement.setInt(4, Integer.parseInt(userId));
-
-            int affectedRows = preparedStatement.executeUpdate();
-
+            session.persist(project);
             updateProjectInRedis(project);
 
-            if (affectedRows > 0) {
-                log.info("Project updated successfully: ID = {}", project.getId());
-
-            } else {
-                throw new ProjectNotFoundException("No project found with ID: " + project.getId());
+            transaction.commit();
+            log.info("Project updated successfully: ID = {}", project.getId());
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
             }
-        } catch (SQLException | ProjectNotFoundException e) {
             log.error("An error occurred while updating project: {}", e.getMessage());
-            throw new RuntimeException("Error updating project in the database", e);
+            throw e;
         }
     }
 
-    private void addProjectToDatabase(String userId, Project project) {
 
-        String insertSQL = "insert into project (project_name, create_date, user_id) " +
-                "values(?, ?, ?)";
+    private void addProjectToDatabase(Project project) {
+        Transaction transaction = null;
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
-            preparedStatement.setString(1, project.getName());
-            preparedStatement.setTimestamp(2, Timestamp.valueOf(project.getCreateDate()));
-            preparedStatement.setInt(3, Integer.parseInt(userId));
+            session.persist(project);
 
-            int affectedRows = preparedStatement.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        String generatedId = String.valueOf(generatedKeys.getInt(1));
-                        project.setId(generatedId);
-                        log.info("Project added successfully with ID: {}", generatedId);
-                    }
-                }
+            transaction.commit();
+
+            log.info("Project added to database successfully: {}", project.getName());
+
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
             }
-
-        } catch (SQLException e) {
-            log.error("Error adding projects: {}",  e.getMessage());
+            log.error("Error adding project to database {}", e.getMessage());
+            throw e;
         }
     }
 
@@ -224,18 +179,34 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         }
 
         try (Jedis jedis = RedisUtil.getJedis()) {
-            jedis.set(project.getId(), project.toString());
-            log.info("Project cached in Redis for ID: {}", project.getId());
+            String projectJson = serializeProjectToJson(project);
+
+            if (projectJson != null) {
+                jedis.set(String.valueOf(project.getId()), projectJson);
+                log.info("Project cached in Redis for ID: {}", project.getId());
+            } else {
+                log.error("Failed to serialize project with ID: {}", project.getId());
+            }
         } catch (JedisException e) {
             log.error("Failed to save project to Redis for ID: {}. Error: {}", project.getId(), e.getMessage());
         }
     }
 
-    private Project getProjectFromRedis(String projectId) {
+    private String serializeProjectToJson(Project project) {
+        try {
+            Gson gson = new Gson();
+            return gson.toJson(project);
+        } catch (Exception e) {
+            log.error("Error serializing project: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private Project getProjectFromRedis(Long projectId) {
         try (Jedis jedis = RedisUtil.getJedis()) {
-            String projectData = jedis.get(projectId);
-            if (projectData != null) {
-                return Project.fromString(projectData);
+            String projectJson = jedis.get(String.valueOf(projectId));
+            if (projectJson != null) {
+                return new Gson().fromJson(projectJson, Project.class);
             }
         } catch (JedisException e) {
             log.error("Failed to get project from Redis, falling back to database: {}", e.getMessage());
@@ -245,10 +216,15 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
     private void updateProjectInRedis(Project project) {
         try (Jedis jedis = RedisUtil.getJedis()) {
-            if (jedis.exists(project.getId())) {
-                jedis.set(project.getId(), project.toString());
-                jedis.expire(project.getId(), 60);
-                log.info("Project with ID {} successfully updated in Redis cache", project.getId());
+            String projectJson = jedis.get(String.valueOf(project.getId()));
+
+            if (projectJson != null) {
+                String updatedProjectJson = serializeProjectToJson(project);
+
+                if(updatedProjectJson != null) {
+                    jedis.expire(String.valueOf(project.getId()), 60);
+                    log.info("Project with ID {} successfully updated in Redis cache", project.getId());
+                }
             } else {
                 log.warn("Project with ID {} not found in Redis cache. Adding it now.", project.getId());
                 addProjectToRedis(project);
@@ -258,19 +234,20 @@ public class ProjectRepositoryImpl implements ProjectRepository {
         }
     }
 
-    private void removeProjectFromRedis(String projectId) {
-        try (Jedis jedis = RedisUtil.getJedis()) {
-            Long result = jedis.del(projectId);
+    private Project getProjectFromDataBase(Long projectId) {
 
-            if (result != null) {
-                log.info("Project with ID {} removed successfully fromRedis Cache", projectId);
-            } else {
-                log.warn("Project with ID {} not found in Redis cache", projectId);
-            }
-        } catch (JedisException e) {
-            log.error("Failed to remove project from Redis: {}", e.getMessage());
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            String hql = "from Project p where p.id = :projectId";
+
+            return session.createQuery(hql, Project.class)
+                    .setParameter("projectId", projectId)
+                    .uniqueResult();
+
+        } catch (Exception e) {
+            log.error("An error occurred while fetching project {}", e.getMessage());
+            throw e;
         }
     }
-
 
 }

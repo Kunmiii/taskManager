@@ -25,6 +25,6 @@ public class UpdateTaskCommand implements Command {
         String projectId = ScannerUtil.getString("Enter Project ID: ");
         String newTaskName = ScannerUtil.getString("Enter new task name: ");
 
-        taskServices.update(projectId, taskId, newTaskName);
+        taskServices.update(Long.valueOf(projectId), Long.valueOf(taskId), newTaskName);
     }
 }

@@ -1,19 +1,13 @@
 package com.kunmi.taskManager.repository.taskRepo;
 
-import com.kunmi.taskManager.exceptions.TaskNotFoundException;
-import com.kunmi.taskManager.service.task.Task;
-import com.kunmi.taskManager.utils.db.DatabaseUtil;
+import com.kunmi.taskManager.models.Task;
+import com.kunmi.taskManager.utils.hibernate.HibernateUtil;
 import lombok.SneakyThrows;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TaskRepositoryImpl implements TaskRepository {
@@ -21,154 +15,139 @@ public class TaskRepositoryImpl implements TaskRepository {
     private static final Logger log = LoggerFactory.getLogger(TaskRepositoryImpl.class);
 
     @Override
-    public void addTask(String projectId, Task task) {
+    public void addTask(Task task) {
+        Transaction transaction = null;
 
-        String insertSQL = "insert into task(task_id, task_name, create_date, project_id) values(?, ?, ?, ?)";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
-        try(Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(insertSQL)) {
+            session.persist(task);
 
-            preparedStatement.setInt(1, Integer.parseInt(task.getId()));
-            preparedStatement.setString(2, task.getName());
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(task.getCreateDate()));
-            preparedStatement.setInt(4, Integer.parseInt(projectId));
-
-
-            preparedStatement.executeUpdate();
+            transaction.commit();
             log.info("Task created successfully");
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             log.error("Error occurred while adding task to database {}", e.getMessage());
+            throw e;
         }
     }
 
     @SneakyThrows
     @Override
-    public Task getTask(String taskId, String projectId) {
+    public Task getTask(Long taskId, Long projectId) {
 
-        String selectSQL = "select * from task where task_id = ? and project_id = ?";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        try(Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(selectSQL)) {
+            String hql = "from Task t where t.id = :taskId and t.project.id = :projectId";
 
-            preparedStatement.setInt(1, Integer.parseInt(taskId));
-            preparedStatement.setInt(2, Integer.parseInt(projectId));
+            return session.createQuery(hql, Task.class)
+                    .setParameter("taskId", taskId)
+                    .setParameter("projectId", projectId)
+                    .uniqueResult();
 
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                if (rs.next()) {
-                    String tID = String.valueOf(rs.getInt(1));
-                    String taskName = rs.getString(2);
-                    LocalDateTime createDate = rs.getTimestamp(3).toLocalDateTime();
-                    String pID = String.valueOf(rs.getInt(4));
-
-                    return  new Task(tID, taskName, createDate, pID);
-                }
-            }
-
-        } catch (SQLException e) {
-            log.error("Error occurred while retrieving task from the database");
+        } catch (Exception e) {
+            log.error("Error occurred while retrieving task with ID {} for project ID {}: {}",
+                    taskId, projectId, e.getMessage());
+            throw e;
         }
-        throw new TaskNotFoundException("Task not found with the ID: " + taskId);
     }
 
     @SneakyThrows
     @Override
-    public List<Task> getProjectTasks(String projectId) {
+    public List<Task> getProjectTasks(Long projectId) {
 
-        List<Task> taskList = new ArrayList<>();
-        String selectSQL = "select * from task where project_id = ?";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from Task t where t.project.id = :projectId", Task.class)
+                    .setParameter("projectId", projectId)
+                    .list();
 
-        try(Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(selectSQL)) {
-
-            preparedStatement.setInt(1, Integer.parseInt(projectId));
-
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
-                    String tID = String.valueOf(rs.getInt(1));
-                    String taskName = rs.getString(2);
-                    LocalDateTime createDate = rs.getTimestamp(3).toLocalDateTime();
-                    String pID = String.valueOf(rs.getInt(4));
-
-                    taskList.add(new Task(tID, taskName, createDate, pID));
-                }
-            }
-
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.error("An error occurred while retrieving task from the database");
-            throw new TaskNotFoundException("Task not found with the ID: " + projectId);
+            throw e;
         }
-         return taskList.isEmpty() ? Collections.emptyList() : taskList;
     }
 
     @Override
-    public void removeTask(String taskId, String projectId) {
+    public void removeTask(Long taskId, Long projectId) {
+        Transaction transaction = null;
 
-        String deleteSQL = "delete from task where task_id = ? and project_id = ?";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(deleteSQL)) {
+            transaction = session.beginTransaction();
 
-            preparedStatement.setInt(1, Integer.parseInt(taskId));
-            preparedStatement.setInt(2, Integer.parseInt(projectId));
+            String hql = "delete from Task t where t.id = :taskId and t.project.id = :projectId";
+            int rowAffected = session.createQuery(hql)
+                    .setParameter("taskId", taskId)
+                    .setParameter("projectId", projectId)
+                    .executeUpdate();
 
-            int rowsAffected = preparedStatement.executeUpdate();
+            transaction.commit();
 
-            if (rowsAffected > 0) {
+            if (rowAffected == 0) {
+                log.warn("Task not found!");
+            } else {
                 log.info("Task with ID {} for user {} removed successfully", projectId, taskId);
-            } else {
-                log.warn("No Task found with ID {} for user {}", projectId, taskId);
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             log.error("An error encountered while removing the project: {}", e.getMessage());
+            throw e;
         }
-
     }
 
     @Override
-    public void removeAllTask(String projectId) {
+    public void removeAllTask(Long projectId) {
+        Transaction transaction = null;
 
-        String deleteSQL = "delete from project where user_id = ?";
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(deleteSQL)) {
+            transaction = session.beginTransaction();
 
-            preparedStatement.setInt(1, Integer.parseInt(projectId));
+            String hql = "delete from Task t where t.project.id = :projectId";
+            int result = session.createQuery(hql)
+                    .setParameter("projectId", projectId)
+                    .executeUpdate();
 
-            int rowsAffected = preparedStatement.executeUpdate();
+            transaction.commit();
 
-            if (rowsAffected > 0) {
-                log.info("{} records were removed", rowsAffected);
+            if (result == 0) {
+                log.warn("No task found with the project ID {}", projectId);
             } else {
-                log.warn("No project found with user ID {}", projectId);
+                log.info("{} projects deleted for project ID: {}", result, projectId);
             }
-        } catch (SQLException e) {
+
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
             log.error("Error occurred while deleting all project with ID: {}", projectId);
+            throw e;
         }
     }
 
     @Override
-    public void updateTask(Task task, String projectId) {
-        String updateSQL = "update task set project_name = ?, create_date = ? where project_id = ?";
+    public void updateTask(Task task) {
+        Transaction transaction = null;
 
-        try (Connection connection = DatabaseUtil.getDataSource().getConnection();
-             var preparedStatement = connection.prepareStatement(updateSQL)) {
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
 
-            preparedStatement.setString(1, task.getName());
-            preparedStatement.setTimestamp(2, Timestamp.valueOf(task.getCreateDate()));
-            preparedStatement.setInt(3, Integer.parseInt(projectId));
+            session.persist(task);
+            log.info("Task updated successfully");
 
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if (affectedRows > 0) {
-                log.info("Task updated successfully: ID = {}", projectId);
-            } else {
-                throw new TaskNotFoundException("No task found with ID: " + projectId);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
             }
-        } catch (SQLException | TaskNotFoundException e) {
             log.error("An error occurred while updating task: {}", e.getMessage());
-            throw new RuntimeException("Error updating task in the database", e);
+            throw e;
         }
     }
 }

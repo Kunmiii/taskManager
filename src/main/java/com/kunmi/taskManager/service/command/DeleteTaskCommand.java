@@ -24,6 +24,6 @@ public class DeleteTaskCommand implements Command {
 
         String taskId = ScannerUtil.getString("Enter Task ID: ");
         String projectId = ScannerUtil.getString("Enter project ID:");
-        taskServices.delete(projectId, taskId);
+        taskServices.delete(Long.valueOf(projectId), Long.valueOf(taskId));
     }
 }
