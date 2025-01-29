@@ -22,7 +22,7 @@ public class Task {
     private String name;
 
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createDate;
+    private LocalDateTime createDate = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)

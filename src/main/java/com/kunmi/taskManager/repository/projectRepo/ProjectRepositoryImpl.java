@@ -27,9 +27,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
     @Override
     public Optional<Project> findById(Long projectId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return Optional.ofNullable(session.createQuery("from Project p where p.id = :projectId", Project.class)
+            Project project = session.createQuery("from Project p where p.id = :projectId", Project.class)
                     .setParameter("projectId", projectId)
-                    .uniqueResult());
+                    .uniqueResult();
+
+            return Optional.ofNullable(project);
         }
     }
 

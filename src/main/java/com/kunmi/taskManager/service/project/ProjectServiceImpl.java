@@ -57,8 +57,11 @@ public class ProjectServiceImpl implements ProjectService {
             ValidationUtils.validateInputs(newProjectName, "NewProjectName");
 
             Project retrievedProject = projectRepository.getProject(projectId, loggedInUser.getId());
-            ValidationUtils.validateUserProject(retrievedProject, loggedInUser.getId());
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new ProjectNotFoundException("Project with ID " + projectId + " does not exist"));
 
+            //ValidationUtils.validateUserProject(retrievedProject, loggedInUser.getId());
+            project.setName(newProjectName);
             projectRepository.updateProject(retrievedProject);
 
             logger.info("Project updated successfully: ID = {}", projectId);
@@ -81,7 +84,6 @@ public class ProjectServiceImpl implements ProjectService {
             List<Project> userProjects = projectRepository.getUserProjects(loggedInUser.getId());
 
             ValidationUtils.validateUserProjects(userProjects, loggedInUser.getId());
-
             return userProjects;
 
         } catch (NullPointerException | ProjectNotFoundException e) {

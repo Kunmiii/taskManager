@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 
 public class TaskRepositoryImpl implements TaskRepository {
 
@@ -20,38 +21,35 @@ public class TaskRepositoryImpl implements TaskRepository {
 
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-
             session.persist(task);
-
             transaction.commit();
-            log.info("Task created successfully");
-
+            log.info("Task created successfully with ID: {}", task.getId());
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
             log.error("Error occurred while adding task to database {}", e.getMessage());
-            throw e;
+            throw new RuntimeException("Failed to add task", e);
         }
     }
 
     @SneakyThrows
     @Override
-    public Task getTask(Long taskId, Long projectId) {
+    public Optional<Task> getTask(Long taskId, Long projectId) {
 
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {
 
             String hql = "from Task t where t.id = :taskId and t.project.id = :projectId";
-
-            return session.createQuery(hql, Task.class)
+            Task task = session.createQuery(hql, Task.class)
                     .setParameter("taskId", taskId)
                     .setParameter("projectId", projectId)
                     .uniqueResult();
+            return Optional.ofNullable(task);
 
         } catch (Exception e) {
             log.error("Error occurred while retrieving task with ID {} for project ID {}: {}",
                     taskId, projectId, e.getMessage());
-            throw e;
+            throw new RuntimeException("Failed to retrieve task", e);
         }
     }
 
@@ -60,13 +58,16 @@ public class TaskRepositoryImpl implements TaskRepository {
     public List<Task> getProjectTasks(Long projectId) {
 
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.createQuery("from Task t where t.project.id = :projectId", Task.class)
+            List<Task> tasks = session.createQuery("from Task t where t.project.id = :projectId", Task.class)
                     .setParameter("projectId", projectId)
                     .list();
 
+            log.info("Retrieved {} tasks for project ID: {}", tasks.size(), projectId);
+            return tasks;
+
         } catch (Exception e) {
-            log.error("An error occurred while retrieving task from the database");
-            throw e;
+            log.error("An error occurred while retrieving tasks for project ID {}: {}", projectId, e.getMessage(), e);
+            throw new RuntimeException("Failed to retrieve tasks for project ID: " + projectId, e);
         }
     }
 
@@ -75,29 +76,26 @@ public class TaskRepositoryImpl implements TaskRepository {
         Transaction transaction = null;
 
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-
             transaction = session.beginTransaction();
-
             String hql = "delete from Task t where t.id = :taskId and t.project.id = :projectId";
             int rowAffected = session.createQuery(hql)
                     .setParameter("taskId", taskId)
                     .setParameter("projectId", projectId)
                     .executeUpdate();
-
             transaction.commit();
 
             if (rowAffected == 0) {
-                log.warn("Task not found!");
+                log.warn("Task with ID {} not found in project ID {}", taskId, projectId);
             } else {
-                log.info("Task with ID {} for user {} removed successfully", projectId, taskId);
+                log.info("Task with ID {} removed successfully from project ID {}", taskId, projectId);
             }
 
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
-            log.error("An error encountered while removing the project: {}", e.getMessage());
-            throw e;
+            log.error("An error occurred while removing task with ID {} from project ID {}: {}", taskId, projectId, e.getMessage(), e);
+            throw new RuntimeException("Failed to remove task", e);
         }
     }
 
@@ -106,14 +104,11 @@ public class TaskRepositoryImpl implements TaskRepository {
         Transaction transaction = null;
 
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {
-
             transaction = session.beginTransaction();
-
             String hql = "delete from Task t where t.project.id = :projectId";
             int result = session.createQuery(hql)
                     .setParameter("projectId", projectId)
                     .executeUpdate();
-
             transaction.commit();
 
             if (result == 0) {
@@ -126,8 +121,8 @@ public class TaskRepositoryImpl implements TaskRepository {
             if (transaction != null) {
                 transaction.rollback();
             }
-            log.error("Error occurred while deleting all project with ID: {}", projectId);
-            throw e;
+            log.error("Error occurred while deleting all tasks for project ID {}: {}", projectId, e.getMessage(), e);
+            throw new RuntimeException("Failed to delete tasks for project ID: " + projectId, e);
         }
     }
 
@@ -137,17 +132,16 @@ public class TaskRepositoryImpl implements TaskRepository {
 
         try(Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-
-            session.persist(task);
-            log.info("Task updated successfully");
-
+            session.merge(task);
             transaction.commit();
+            log.info("Task updated successfully");
+            log.info("Task with ID {} updated successfully", task.getId());
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
             }
-            log.error("An error occurred while updating task: {}", e.getMessage());
-            throw e;
+            log.error("An error occurred while updating task with ID {}: {}", task.getId(), e.getMessage(), e);
+            throw new RuntimeException("Failed to update task", e);
         }
     }
 }

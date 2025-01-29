@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 public class TaskServiceImpl implements TaskServices {
@@ -37,9 +38,6 @@ public class TaskServiceImpl implements TaskServices {
 
             Project project = projectRepository.findById(projectId)
                     .orElseThrow(() -> new IllegalArgumentException("Project with ID " + projectId + " does not exist"));
-
-            boolean projectExists = projectRepository.existsById(projectId);
-            ValidationUtils.validateProjectExists(projectExists, projectId);
 
             Task task = new Task(taskName, createDate, project);
             taskRepository.addTask(task);
@@ -66,19 +64,19 @@ public class TaskServiceImpl implements TaskServices {
             ValidationUtils.validateInputs(String.valueOf(projectId), "projectId");
             ValidationUtils.validateInputs(taskName, "taskName");
 
-            boolean projectExist = projectRepository.existsById(projectId);
-            ValidationUtils.validateProjectExists(projectExist, projectId);
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new ProjectNotFoundException("Project with ID " + projectId + " does not exist"));
 
-            Task task = taskRepository.getTask(taskId, projectId);
-            if (task == null) {
-                throw new TaskNotFoundException("Task with ID " + taskId + " not found in active projects");
-            }
+            Optional<Task> taskOptional = taskRepository.getTask(taskId, projectId);
+            Task task = taskOptional.orElseThrow(() ->
+                    new TaskNotFoundException("Task with ID " + taskId + " not found in active projects"));
 
+            task.setName(taskName);
             taskRepository.updateTask(task);
             logger.info("Task with id {} was updated successfully:", taskId);
 
         } catch (TaskNotFoundException | IllegalArgumentException e) {
-            logger.error("Error: {}", e.getMessage());
+            logger.error("Error updating task with ID {} in project {}: {}", taskId, projectId, e.getMessage());
         } catch (Exception e) {
             logger.error("An unexpected error occurred while updating task: {}", e.getMessage());
         }
@@ -91,23 +89,24 @@ public class TaskServiceImpl implements TaskServices {
         try {
             ValidationUtils.validateInputs(String.valueOf(projectId), "projectId");
 
-            boolean projectExist = projectRepository.existsById(projectId);
-            ValidationUtils.validateProjectExists(projectExist, projectId);
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new ProjectNotFoundException("Project with ID " + projectId + " does not exist"));
 
             List<Task> projectTask = taskRepository.getProjectTasks(projectId);
-            if (projectTask == null || projectTask.isEmpty()) {
+            if (projectTask.isEmpty()) {
                 logger.info("No tasks found for the project ID: {}", projectId);
                 return Collections.emptyList();
             }
+
             return projectTask;
 
         } catch (ProjectNotFoundException | IllegalArgumentException e) {
             logger.error("Error fetching tasks for project ID {}: {}", projectId, e.getMessage());
             throw e;
         } catch (Exception e) {
-            logger.error("An expected error occurred while fetching tasks: {}", e.getMessage());
+            logger.error("An unexpected error occurred while fetching tasks: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch tasks", e);
         }
-        return Collections.emptyList();
     }
 
     @Override
@@ -115,18 +114,19 @@ public class TaskServiceImpl implements TaskServices {
 
         try {
             ValidationUtils.validateInputs(String.valueOf(taskId), "taskId");
-            boolean projectExist = projectRepository.existsById(projectId);
-            ValidationUtils.validateProjectExists(projectExist, projectId);
+
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new ProjectNotFoundException("Project with ID " + projectId + " does not exist"));
+
 
             taskRepository.removeTask(taskId, projectId);
             logger.info("Task with ID {} is deleted successfully from project {}", taskId, projectId);
 
-        } catch (ProjectNotFoundException e) {
-            logger.error("An error occurred: {} ", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            logger.error("Error deleting task: {}", e.getMessage());
+        } catch (ProjectNotFoundException | IllegalArgumentException e) {
+            logger.error("Error deleting task with ID {} from project {}: {}", taskId, projectId, e.getMessage());
         } catch (Exception e) {
-            logger.error("An unexpected error occurred while deleting tasks with ID{}: {}", taskId, e.getMessage());
+            logger.error("An unexpected error occurred while deleting task: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to delete task", e);
         }
     }
 }
