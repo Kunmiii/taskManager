@@ -1,5 +1,7 @@
 package com.kunmi.taskManager.service.user;
 
+import com.kunmi.taskManager.models.User;
+
 public class UserContext {
 
     private static final ThreadLocal<User> currentUser = new ThreadLocal<>();

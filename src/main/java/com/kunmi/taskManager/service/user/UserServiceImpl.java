@@ -2,6 +2,7 @@ package com.kunmi.taskManager.service.user;
 
 import com.kunmi.taskManager.exceptions.UserAlreadyExistsException;
 import com.kunmi.taskManager.exceptions.UserNotFoundException;
+import com.kunmi.taskManager.models.User;
 import com.kunmi.taskManager.repository.userRepo.UserRepository;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
 import lombok.SneakyThrows;
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
             ValidationUtils.validateInputs(email, "Email");
             ValidationUtils.validateInputs(password, "Password");
 
-            User user = userRepository.getUser(email);
+            User user = userRepository.getUserByEmail(email);
             ValidationUtils.validateUserLogin(user);
 
             if (!checkPassword(password, user.getPassword())) {

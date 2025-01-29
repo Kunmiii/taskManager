@@ -24,6 +24,6 @@ public class UpdateProjectCommand implements Command {
 
         String ProjectId = ScannerUtil.getString("Enter project id: ");
         String newProjectName = ScannerUtil.getString("Enter new project name:");
-        projectService.update(ProjectId, newProjectName);
+        projectService.update(Long.valueOf(ProjectId), newProjectName);
     }
 }

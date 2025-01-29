@@ -1,5 +1,6 @@
 package com.kunmi.taskManager.service.task;
 
+import com.kunmi.taskManager.models.Task;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
 import com.kunmi.taskManager.repository.taskRepo.TaskRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +43,7 @@ class TaskServiceImplTest {
         when(projectRepository.existsById(projectId)).thenReturn(true);
         taskService.create(taskName, projectId, createDate);
 
-        verify(taskRepository, times(1)).addTask(eq(projectId), any(Task.class));
+        verify(taskRepository, times(1)).addTask(any(Task.class));
     }
 
     @Test

@@ -1,8 +1,9 @@
 package com.kunmi.taskManager.service.project;
 
 import com.kunmi.taskManager.exceptions.ProjectNotFoundException;
+import com.kunmi.taskManager.models.Project;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
-import com.kunmi.taskManager.service.user.User;
+import com.kunmi.taskManager.models.User;
 import com.kunmi.taskManager.service.user.UserContext;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
 import lombok.SneakyThrows;
@@ -63,7 +64,7 @@ class ProjectServiceImplTest {
             projectService.create(projectName, createDate);
 
             // Verify the repository interaction
-            verify(projectRepository, times(1)).saveProject(eq(loggedInUser.getId()), any(Project.class));
+            verify(projectRepository, times(1)).saveProject(any(Project.class));
         }
     }
 
@@ -115,13 +116,13 @@ class ProjectServiceImplTest {
             mockedValidationUtils.when(() -> ValidationUtils.validateNotNull(any(), anyString()))
                     .thenAnswer(invocation -> null);
             
-            Project project = new Project("Old Project", LocalDateTime.now(), loggedInUser.getId());
+            Project project = new Project("Old Project", LocalDateTime.now(), loggedInUser);
             when(projectRepository.getProject(projectID, loggedInUser.getId())).thenReturn(project);
 
             projectService.update(projectID, newProjectName);
 
             assertEquals("Project name should be updated to the new value", newProjectName, project.getName());
-            verify(projectRepository, times(1)).updateProject(eq(loggedInUser.getId()), any(Project.class));
+            verify(projectRepository, times(1)).updateProject(any(Project.class));
 
 
         }
@@ -152,9 +153,9 @@ class ProjectServiceImplTest {
          try (MockedStatic<UserContext> mockedUserContext = mockStatic(UserContext.class)) {
              mockedUserContext.when(UserContext::getCurrentUser).thenReturn(loggedInUser);
 
-             when(loggedInUser.getId()).thenReturn("123");
-             Project project = new Project("Test Project", LocalDateTime.now(), "123");
-             when(projectRepository.getUserProjects("123"))
+             when(loggedInUser.getId()).thenReturn(123L);
+             Project project = new Project("Test Project", LocalDateTime.now(), loggedInUser);
+             when(projectRepository.getUserProjects(123L))
                      .thenReturn(Collections.singletonList(project));
 
              List<Project> projects = projectService.findAll();
@@ -195,18 +196,18 @@ class ProjectServiceImplTest {
     @SneakyThrows
     @Test
     void shouldDeleteProjectSuccessfully() {
-        String projectId = "123";
+        Long projectId = 123L;
 
         try (MockedStatic<UserContext> mockedUserContext = mockStatic(UserContext.class)) {
             mockedUserContext.when(UserContext::getCurrentUser).thenReturn(loggedInUser);
-            when(loggedInUser.getId()).thenReturn("1");
+            when(loggedInUser.getId()).thenReturn(1L);
 
-            Project project = new Project("Test Project", LocalDateTime.now(), "1");
-            when(projectRepository.getProject(projectId, "1")).thenReturn(project);
+            Project project = new Project("Test Project", LocalDateTime.now(), loggedInUser);
+            when(projectRepository.getProject(projectId, 123L)).thenReturn(project);
 
             projectService.delete(projectId);
 
-            verify(projectRepository).removeProject(projectId, "1");
+            verify(projectRepository).removeProject(projectId, 1L);
         }
     }
 

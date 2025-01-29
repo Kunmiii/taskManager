@@ -22,7 +22,7 @@ public class DeleteProjectCommand implements Command {
         System.out.println("Display Projects");
         System.out.println("====================");
 
-        String projectId = ScannerUtil.getString("Enter project id: ");
+        Long projectId = Long.valueOf(ScannerUtil.getString("Enter project id: "));
         projectService.delete(projectId);
 
     }

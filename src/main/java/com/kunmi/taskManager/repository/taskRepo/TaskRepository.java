@@ -1,14 +1,15 @@
 package com.kunmi.taskManager.repository.taskRepo;
 
-import com.kunmi.taskManager.service.task.Task;
+import com.kunmi.taskManager.models.Task;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskRepository {
-    void addTask(String taskId, Task task);
-    Task getTask(String taskId, String projectId);
-    List<Task> getProjectTasks(String projectId);
-    void removeTask(String taskId, String projectId);
-    void removeAllTask(String projectId);
-    void updateTask(Task task, String projectId);
+    void addTask(Task task);
+    Optional<Task> getTask(Long taskId, Long projectId);
+    List<Task> getProjectTasks(Long projectId);
+    void removeTask(Long taskId, Long projectId);
+    void removeAllTask(Long projectId);
+    void updateTask(Task task);
 }

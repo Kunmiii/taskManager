@@ -1,8 +1,9 @@
 package com.kunmi.taskManager.service.project;
 
 import com.kunmi.taskManager.exceptions.ProjectNotFoundException;
+import com.kunmi.taskManager.models.Project;
 import com.kunmi.taskManager.repository.projectRepo.ProjectRepository;
-import com.kunmi.taskManager.service.user.User;
+import com.kunmi.taskManager.models.User;
 import com.kunmi.taskManager.service.user.UserContext;
 import com.kunmi.taskManager.utils.validation.ValidationUtils;
 import lombok.SneakyThrows;
@@ -31,8 +32,8 @@ public class ProjectServiceImpl implements ProjectService {
             ValidationUtils.validateInputs(projectName, "ProjectName");
             ValidationUtils.validateNotNull(createDate, "createDate");
 
-            Project project = new Project(projectName, createDate, loggedInUser.getId());
-            projectRepository.saveProject(loggedInUser.getId(), project);
+            Project project = new Project(projectName, createDate, loggedInUser);
+            projectRepository.saveProject(project);
 
             logger.info("Project ID: {}, Project Name: {}, User ID: {}", project.getId(), projectName, loggedInUser.getId());
 
@@ -48,20 +49,20 @@ public class ProjectServiceImpl implements ProjectService {
     //@SneakyThrows
     @SneakyThrows
     @Override
-    public void update(String projectId, String newProjectName) {
+    public void update(Long projectId, String newProjectName) {
         try {
             User loggedInUser = UserContext.getCurrentUser();
             ValidationUtils.validateNotNull(loggedInUser, "logged-in user");
-            ValidationUtils.validateInputs(projectId, "fieldName");
+            ValidationUtils.validateInputs(String.valueOf(projectId), "fieldName");
             ValidationUtils.validateInputs(newProjectName, "NewProjectName");
 
             Project retrievedProject = projectRepository.getProject(projectId, loggedInUser.getId());
-            ValidationUtils.validateUserProject(retrievedProject, loggedInUser.getId());
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new ProjectNotFoundException("Project with ID " + projectId + " does not exist"));
 
-            retrievedProject.setName(newProjectName);
-            retrievedProject.setCreateDate(LocalDateTime.now());
-
-            projectRepository.updateProject(loggedInUser.getId(), retrievedProject);
+            //ValidationUtils.validateUserProject(retrievedProject, loggedInUser.getId());
+            project.setName(newProjectName);
+            projectRepository.updateProject(retrievedProject);
 
             logger.info("Project updated successfully: ID = {}", projectId);
         } catch (NullPointerException e) {
@@ -83,24 +84,24 @@ public class ProjectServiceImpl implements ProjectService {
             List<Project> userProjects = projectRepository.getUserProjects(loggedInUser.getId());
 
             ValidationUtils.validateUserProjects(userProjects, loggedInUser.getId());
-
             return userProjects;
 
         } catch (NullPointerException | ProjectNotFoundException e) {
             logger.error("Errors: {}", e.getMessage());
         } catch (Exception e) {
             logger.error("An unexpected error occurred while viewing projects: {}", e.getMessage());
+            throw e;
         }
         return Collections.emptyList();
     }
 
     @SneakyThrows
     @Override
-    public void delete(String projectId) {
+    public void delete(Long projectId) {
         try {
             User loggedInUser = UserContext.getCurrentUser();
             ValidationUtils.validateNotNull(loggedInUser, "Logged-in user");
-            ValidationUtils.validateInputs(projectId, "ProjectId");
+            ValidationUtils.validateInputs(String.valueOf(projectId), "ProjectId");
 
             Project response = projectRepository.getProject(projectId, loggedInUser.getId());
             ValidationUtils.validateUserProject(response, loggedInUser.getId());
@@ -113,6 +114,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw e;
         } catch (Exception e) {
             logger.error("Unexpected error occurred: {}", e.getMessage());
+            throw e;
         }
     }
 }

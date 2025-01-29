@@ -1,11 +1,13 @@
 package com.kunmi.taskManager.service.task;
 
+import com.kunmi.taskManager.models.Task;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface TaskServices {
-    void create(String taskName, String projectId, LocalDateTime createDate);
-    void update(String projectId, String taskId, String taskName);
-    List<Task> findAll(String projectId);
-    void delete(String projectId, String taskId);
+    void create(String taskName, Long projectId, LocalDateTime createDate);
+    void update(Long projectId, Long taskId, String taskName);
+    List<Task> findAll(Long projectId);
+    void delete(Long projectId, Long taskId);
 }

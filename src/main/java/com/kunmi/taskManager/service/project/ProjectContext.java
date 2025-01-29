@@ -1,5 +1,7 @@
 package com.kunmi.taskManager.service.project;
 
+import com.kunmi.taskManager.models.Project;
+
 public class ProjectContext {
 
     private static final ThreadLocal<Project> projectThreadLocal = new ThreadLocal<>();

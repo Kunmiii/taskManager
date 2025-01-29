@@ -1,15 +1,17 @@
 package com.kunmi.taskManager.repository.projectRepo;
 
-import com.kunmi.taskManager.service.project.Project;
+import com.kunmi.taskManager.models.Project;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProjectRepository {
-    Project getProject(String projectId, String userId);
-    List<Project> getUserProjects(String userId);
-    void removeProject(String projectName, String userID);
-    void removeAllProjectsForUser(String userid);
-    boolean existsById(String projectId);
-    void updateProject(String projectId, Project project);
-    void saveProject(String userId, Project project);
+    Project getProject(Long projectId, Long userId);
+    List<Project> getUserProjects(Long userId);
+    void removeProject(Long projectId, Long userID);
+    void removeAllProjectsForUser(Long userid);
+    boolean existsById(Long projectId);
+    void updateProject(Project project);
+    void saveProject(Project project);
+    Optional<Project> findById(Long projectId);
 }
