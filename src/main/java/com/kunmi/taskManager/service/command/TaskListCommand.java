@@ -27,8 +27,7 @@ public class TaskListCommand implements Command {
         String projectId = ScannerUtil.getString("Enter project ID: ");
 
         List<Task> result = taskServices.findAll(Long.valueOf(projectId));
-        result.stream()
-                .toList()
-                .forEach(System.out::println);
+
+        result.forEach(System.out::println);
     }
 }
