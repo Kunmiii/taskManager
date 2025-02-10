@@ -1,130 +1,131 @@
 package com.kunmi.taskManager.repository.userRepo;
 
 
-import com.kunmi.taskManager.service.user.User;
-import com.kunmi.taskManager.utils.db.DatabaseUtil;
+import com.google.gson.Gson;
+import com.kunmi.taskManager.models.User;
+import com.kunmi.taskManager.utils.hibernate.HibernateUtil;
 import com.kunmi.taskManager.utils.redis.RedisUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisException;
+import redis.clients.jedis.params.SetParams;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.util.List;
 
 @Slf4j
-public class UserRepositoryImpl implements UserRepository {
+public class UserRepositoryImpl implements  UserRepository{
 
-    @Override
     public void saveUser(User user) {
-        saveUserToDatabase(user);
-        saveUserToRedis(user);
+        Transaction transaction = null;
+
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            session.persist(user);
+
+            //saveUserToRedis(user);
+
+            transaction.commit();
+
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+
+            log.error("Error occurred while saving user: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private void saveUserToRedis(User user) {
+        try(Jedis jedis = RedisUtil.getJedis()) {
+            String userJson = new Gson().toJson(user);
+
+            SetParams setParams = new SetParams();
+            jedis.set(user.getEmail(), userJson, setParams.ex(60));
+
+            log.info("User saved to Redis: {}", user.getEmail());
+        } catch (JedisException e) {
+            log.error("Error saving user to Redis - {}", e.getMessage());
+            throw e;
+        }
     }
 
     @Override
-    public User getUser(String email) {
-        User user = getUserFromRedis(email);
+    public User getUserByEmail(String email) {
 
-        if (user == null) {
-            user = getUserFromDatabase(email);
-            if (user != null) {
-                saveUserToRedis(user);
-            }
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+
+            return session.createQuery("from User where email = :email", User.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
         }
-        return user;
+    }
+
+    @Override
+    public void updateUser(User user) {
+        Transaction transaction = null;
+
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            session.persist(user);
+
+            transaction.commit();
+            log.info("User updated successfully.");
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            log.error("Error occurred while updating user - {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @Override
+    public void deleteUser(String email) {
+
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+
+            String hql = "delete from User u where u.email = :email";
+            int result = session.createQuery(hql, User.class)
+                    .setParameter("email", email)
+                    .executeUpdate();
+
+            transaction.commit();
+
+            if (result == 0) {
+                log.warn("No user found with the email {}", email);
+            } else {
+                log.info("User with email: {} is deleted successfully", email);
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while deleting user with email {}", email);
+            throw e;
+        }
+
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery("from User", User.class).list();
+        }
     }
 
     @Override
     public boolean userExists(String email) {
 
-        String selectSql = "select email from users where email = ?";
-
-        try(Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(selectSql)) {
-
-            preparedStatement.setString(1, email);
-
-            try(var resultSet = preparedStatement.executeQuery()) {
-                return resultSet.next();
-            }
-        } catch (SQLException e) {
-            log.error("Error fetching record: {}", e.getMessage());
-        }
-        return false;
-    }
-
-    private  User getUserFromRedis(String email) {
-        try (Jedis jedis = RedisUtil.getJedis()) {
-            String userData = jedis.get(email);
-            if (userData != null) {
-                return User.fromString(userData);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to get user from Redis, falling back to database:{}", e.getMessage());
-        }
-        return null;
-    }
-
-    private void saveUserToRedis(User user) {
-        try (Jedis jedis = RedisUtil.getJedis()) {
-            jedis.set(user.getEmail(), user.toString());
-            jedis.expire(user.getEmail(), 60);
-        } catch (Exception e) {
-            log.error("Failed to save user to Redis: {}", e.getMessage());
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            String hql = "select count(u) from User u where u.email = :email";
+            Long count = session.createQuery(hql, Long.class)
+                    .setParameter("email", email)
+                    .uniqueResult();
+            return count != null && count > 0;
         }
     }
 
-    private User convertToUser(PreparedStatement preparedStatement) throws SQLException {
-        try(var resultSet = preparedStatement.executeQuery()) {
-            if (resultSet.next()) {
-
-                String firstName = resultSet.getString("firstName");
-                String lastName = resultSet.getString("lastName");
-                String password = resultSet.getString("password");
-                String retrievedEmail = resultSet.getString("email");
-                String retrievedUserId = String.valueOf(resultSet.getInt("id"));
-
-                return new User(retrievedUserId, firstName, lastName, password, retrievedEmail);
-            }
-        }
-        return null;
-    }
-
-    private void saveUserToDatabase(User user) {
-
-        String insertSQL = "insert into users (firstName, lastName, password, email) " +
-                "values(?, ?, ?, ?)";
-
-        try(Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(insertSQL)) {
-
-            preparedStatement.setString(1, user.getFirstName());
-            preparedStatement.setString(2, user.getLastName());
-            preparedStatement.setString(3, user.getPassword());
-            preparedStatement.setString(4, user.getEmail());
-
-            preparedStatement.execute();
-            log.info("record created successfully");
-
-        } catch (SQLException e) {
-            log.error("Error creating record: {}", e.getMessage());
-        }
-    }
-
-    private User getUserFromDatabase(String email) {
-
-        String selectSQL = "select * from users where email = ?";
-
-        try(Connection connection = DatabaseUtil.getDataSource().getConnection();
-            var preparedStatement = connection.prepareStatement(selectSQL)) {
-
-            preparedStatement.setString(1, email);
-
-            User retrievedUserId = convertToUser(preparedStatement);
-            if (retrievedUserId != null) return retrievedUserId;
-
-        } catch (SQLException e) {
-            log.error("Error retrieving record: {}",  e.getMessage());
-        }
-        return null;
-    }
 }
