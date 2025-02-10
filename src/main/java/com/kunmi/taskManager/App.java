@@ -1,5 +1,6 @@
 package com.kunmi.taskManager;
 
+import com.kunmi.taskManager.service.user.UserServiceProxy;
 import com.kunmi.taskManager.utils.input.ScannerUtil;
 import com.kunmi.taskManager.repository.commandRepo.CommandRepository;
 import com.kunmi.taskManager.repository.commandRepo.CommandRepositoryImpl;
@@ -39,8 +40,9 @@ public class App {
         TaskRepository taskRepository = new TaskRepositoryImpl();
         ProjectService projectService = new ProjectServiceImpl(projectRepository);
         UserService userService = new UserServiceImpl(userRepository);
+        UserService userServiceProxy = new UserServiceProxy(userService);
         TaskServices taskServices = new TaskServiceImpl(taskRepository, projectRepository);
-        CommandServiceImpl commandService = new CommandServiceImpl(userService, projectService, commandPersistence, taskServices);
+        CommandServiceImpl commandService = new CommandServiceImpl(userServiceProxy, projectService, commandPersistence, taskServices);
 
         boolean isRunning = true;
 
