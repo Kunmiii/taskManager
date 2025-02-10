@@ -13,11 +13,11 @@ public class UserServiceProxy implements UserService {
         this.realUserService = realUserService;
     }
     @Override
-    public String registerUser(String name, String lastName, String email, String password) {
+    public String registerUser(String name, String lastName, String password, String email) {
         logger.info("Register user is being accessed for email {}", email);
 
         try {
-            String result = realUserService.registerUser(name, lastName, email, password);
+            String result = realUserService.registerUser(name, lastName, password, email);
             logger.info("User registration successful for email {}", email);
             return result;
         } catch (Exception e) {
