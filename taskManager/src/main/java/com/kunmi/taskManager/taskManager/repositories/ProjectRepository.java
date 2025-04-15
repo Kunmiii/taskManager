@@ -8,5 +8,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProjectRepository extends JpaRepository<Project, UUID> {
-    Optional<List<Project>> findByUserId(UUID id);
+    List<Project> findByUserId(UUID id);
 }

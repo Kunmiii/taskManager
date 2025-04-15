@@ -1,7 +1,7 @@
 package com.kunmi.taskManager.taskManager.services;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
-import com.kunmi.taskManager.taskManager.DTOs.*;
+import com.kunmi.taskManager.taskManager.records.*;
 import com.kunmi.taskManager.taskManager.contexts.UserContext;
 import com.kunmi.taskManager.taskManager.exceptions.UserNotFoundException;
 import com.kunmi.taskManager.taskManager.models.User;
@@ -21,37 +21,41 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public RegisterUserResponseDTO registerUser(RegisterUserRequestDTO registerUserRequestDTO) {
-        String hashedPassword = encryptPassword(registerUserRequestDTO);
-        User user = new User(registerUserRequestDTO.getFirstName(),
-                             registerUserRequestDTO.getLastName(),
+    public RegisterUserResponseRecord registerUser(RegisteruserRequestRecord registeruserRequestRecord) {
+        String hashedPassword = encryptPassword(registeruserRequestRecord);
+        User user = new User(registeruserRequestRecord.firstName(),
+                             registeruserRequestRecord.lastName(),
                              hashedPassword,
-                             registerUserRequestDTO.getEmail()
+                             registeruserRequestRecord.email()
                              );
 
         try {
             User savedUser = userRepository.save(user);
-            log.info("user with email: {} registered successfully", registerUserRequestDTO.getEmail());
-            return new RegisterUserResponseDTO(savedUser);
+            log.info("user with email: {} registered successfully", registeruserRequestRecord.email());
+            return new RegisterUserResponseRecord(savedUser.getId(),
+                                                  savedUser.getFirstName(),
+                                                  savedUser.getLastName(),
+                                                  savedUser.getEmail(),
+                                                  savedUser.getCreatedAt());
         } catch (Exception e) {
-            log.error("user with email: {} already registered", registerUserRequestDTO.getEmail());
+            log.error("user with email: {} already registered", registeruserRequestRecord.email());
             throw new RuntimeException("User registration failed: " + e.getMessage(), e);
         }
     }
 
-    private static @NotNull String encryptPassword(RegisterUserRequestDTO registerUserRequestDTO) {
+    private static @NotNull String encryptPassword(RegisteruserRequestRecord registeruserRequestRecord) {
         return BCrypt.withDefaults()
-                .hashToString(12, registerUserRequestDTO
-                                .getPassword()
+                .hashToString(12, registeruserRequestRecord
+                                .password()
                                 .toCharArray());
     }
 
     @Override
-    public UserLoginResponseDTO userLogin(UserLoginRequestDTO userLoginRequestDTO) {
-        User user = userRepository.getUserByEmail(userLoginRequestDTO.getEmail())
+    public UserLoginResponseRecord userLogin(UserLoginRequestRecord userLoginRequestRecord) {
+        User user = userRepository.getUserByEmail(userLoginRequestRecord.email())
                 .orElseThrow(() -> new UserNotFoundException("Username does not exist"));
 
-        boolean passwordMatches = isPasswordMatches(userLoginRequestDTO, user);
+        boolean passwordMatches = isPasswordMatches(userLoginRequestRecord, user);
 
         if (!passwordMatches) {
             throw new RuntimeException("Invalid password");
@@ -59,12 +63,12 @@ public class UserServiceImpl implements UserService {
         UserContext.setCurrentUser(user);
         log.info("User {} logged in successfully", user.getEmail());
 
-        return new UserLoginResponseDTO("User: " + user.getEmail() + " logged in successfully");
+        return new UserLoginResponseRecord("User: " + user.getEmail() + " logged in successfully");
     }
 
-    private static boolean isPasswordMatches(UserLoginRequestDTO userLoginRequestDTO, User user) {
+    private static boolean isPasswordMatches(UserLoginRequestRecord userLoginRequestRecord, User user) {
         return BCrypt.verifyer()
-                .verify(userLoginRequestDTO.getPassword().toCharArray(), user.getPassword())
+                .verify(userLoginRequestRecord.password().toCharArray(), user.getPassword())
                 .verified;
     }
 }

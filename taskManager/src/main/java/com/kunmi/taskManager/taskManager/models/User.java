@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CollectionId;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,9 +36,11 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @LastModifiedDate
     @Column(name = "modified_at")
     private LocalDateTime modified_at;
 
@@ -52,16 +56,4 @@ public class User {
         this.password = password;
         this.email = email;
     }
-
-    @PrePersist
-    public void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.modified_at = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void OnUpdate() {
-        this.modified_at = LocalDateTime.now();
-    }
-
 }
