@@ -1,10 +1,10 @@
-package com.kunmi.taskManager.taskManager.records;
+package com.kunmi.taskManager.taskManager.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record RegisteruserRequestRecord(
+public record RegisteruserRequestDTO(
         @NotBlank(message = "First name cannot be blank")
         String firstName,
 

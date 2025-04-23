@@ -1,10 +1,10 @@
-package com.kunmi.taskManager.taskManager.records;
+package com.kunmi.taskManager.taskManager.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record UserLoginRequestRecord(
+public record UserLoginRequestDTO(
         @NotBlank(message = "Email cannot be blank")
         @Email(message = "Email must be a valid email address")
         String email,

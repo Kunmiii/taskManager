@@ -1,12 +1,11 @@
-package com.kunmi.taskManager.taskManager.records;
+package com.kunmi.taskManager.taskManager.dto;
 
-import com.kunmi.taskManager.taskManager.models.Project;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record ProjectResponseRecord(
+public record ProjectResponseDTO(
         @NotNull(message = "Project ID cannot be null")
         UUID id,
 
@@ -16,11 +15,11 @@ public record ProjectResponseRecord(
         @NotBlank(message = "Message cannot be blank")
         String message
 ) {
-    public ProjectResponseRecord(UUID id, String name) {
+    public ProjectResponseDTO(UUID id, String name) {
         this(id, name, "Project created successfully");
     }
 
-    public ProjectResponseRecord(String message) {
+    public ProjectResponseDTO(String message) {
         this(null,null, message);
     }
 }

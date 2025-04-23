@@ -1,10 +1,10 @@
 package com.kunmi.taskManager.taskManager.services;
 
-import com.kunmi.taskManager.taskManager.records.*;
+import com.kunmi.taskManager.taskManager.dto.*;
 
 public interface UserService {
-    RegisterUserResponseRecord registerUser(RegisteruserRequestRecord registeruserRequestRecord);
-    UserLoginResponseRecord userLogin(UserLoginRequestRecord userLoginRequestRecord);
+    RegisterUserResponseDTO registerUser(RegisteruserRequestDTO registeruserRequestDTO);
+    UserLoginResponseDTO userLogin(UserLoginRequestDTO userLoginRequestDTO);
 
 
 }

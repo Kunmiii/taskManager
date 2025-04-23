@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.taskManager.controllers;
 
-import com.kunmi.taskManager.taskManager.records.*;
+import com.kunmi.taskManager.taskManager.dto.*;
 import com.kunmi.taskManager.taskManager.models.User;
 import com.kunmi.taskManager.taskManager.services.ProjectService;
 import com.kunmi.taskManager.taskManager.utilities.SessionManager;
@@ -23,41 +23,41 @@ public class ProjectControllerImpl {
     private final SessionManager sessionManager;
 
     @GetMapping("/projects")
-    public ResponseEntity<ProjectListResponseRecord> getUserProjects(HttpSession session) {
+    public ResponseEntity<ProjectListResponseDTO> getUserProjects(HttpSession session) {
         User currentUser = sessionManager.getCurrentUser(session);
         log.info("Fetching projects for user: {}", currentUser.getEmail());
-        ProjectListResponseRecord projects = projectService.findAll(currentUser.getEmail());
+        ProjectListResponseDTO projects = projectService.findAll(currentUser.getEmail());
         return ResponseEntity.ok(projects);
     }
 
     @PostMapping("/projects")
-    public ResponseEntity<ProjectResponseRecord> createProject(@Valid @RequestBody ProjectRequestRecord projectRequestRecord, HttpSession session) {
+    public ResponseEntity<ProjectResponseDTO> createProject(@Valid @RequestBody ProjectRequestDTO projectRequestDTO, HttpSession session) {
         User currentUser = sessionManager.getCurrentUser(session);
         log.info("Creating project for user: {}", currentUser.getEmail());
-        ProjectResponseRecord responseDTO = projectService.create(projectRequestRecord, currentUser.getEmail());
+        ProjectResponseDTO responseDTO = projectService.create(projectRequestDTO, currentUser.getEmail());
         return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("projects/{id}")
-    public ResponseEntity<GetProjectResponseRecord> getUserProject(@PathVariable UUID id, HttpSession session) {
+    public ResponseEntity<GetProjectResponseDTO> getUserProject(@PathVariable UUID id, HttpSession session) {
         User currentUser = sessionManager.getCurrentUser(session);
         log.info("Fetching project {} for user: {}", id, currentUser.getEmail());
-        GetProjectResponseRecord project = projectService.find(currentUser.getEmail(), id);
+        GetProjectResponseDTO project = projectService.find(currentUser.getEmail(), id);
         return ResponseEntity.ok(project);
     }
 
     @PutMapping("/projects/{id}")
-    public ResponseEntity<UpdateProjectResponseRecord> updateProject(@PathVariable UUID id, @Valid @RequestBody UpdateProjectRequestRecord updateProjectRequestRecord, HttpSession session) {
+    public ResponseEntity<Void> updateProject(@PathVariable UUID id, @Valid @RequestBody UpdateProjectRequestDTO updateProjectRequestDTO, HttpSession session) {
         User currentUser = sessionManager.getCurrentUser(session);
         log.info("Updating project for user {}", currentUser.getEmail());
-        UpdateProjectResponseRecord response = projectService.update(id, updateProjectRequestRecord, currentUser.getEmail());
-        return ResponseEntity.ok(response);
+        projectService.update(id, updateProjectRequestDTO, currentUser.getEmail());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/projects/{id}")
-    public ResponseEntity<DeleteProjectResponseRecord> deleteProject(@PathVariable UUID id, HttpSession session) {
+    public ResponseEntity<Void> deleteProject(@PathVariable UUID id, HttpSession session) {
         User currentUser = sessionManager.getCurrentUser(session);
-        DeleteProjectResponseRecord response = projectService.delete(currentUser.getEmail(), id);
-        return ResponseEntity.ok(response);
+        projectService.delete(currentUser.getEmail(), id);
+        return ResponseEntity.noContent().build();
     }
 }

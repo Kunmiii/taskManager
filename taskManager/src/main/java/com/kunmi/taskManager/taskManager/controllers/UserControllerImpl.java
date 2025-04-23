@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.taskManager.controllers;
 
-import com.kunmi.taskManager.taskManager.records.*;
+import com.kunmi.taskManager.taskManager.dto.*;
 import com.kunmi.taskManager.taskManager.annotations.RetryOnFailure;
 import com.kunmi.taskManager.taskManager.models.User;
 import com.kunmi.taskManager.taskManager.repositories.UserRepository;
@@ -27,15 +27,15 @@ public class UserControllerImpl {
     private final SessionManager sessionManager;
 
     @PostMapping("/users")
-    public ResponseEntity<RegisterUserResponseRecord> registration(@Valid @RequestBody RegisteruserRequestRecord registeruserRequestRecord) {
-        RegisterUserResponseRecord responseDTO = userService.registerUser(registeruserRequestRecord);
+    public ResponseEntity<RegisterUserResponseDTO> registration(@Valid @RequestBody RegisteruserRequestDTO registeruserRequestDTO) {
+        RegisterUserResponseDTO responseDTO = userService.registerUser(registeruserRequestDTO);
         return ResponseEntity.ok(responseDTO);
     }
 
     @RetryOnFailure
     @PostMapping("/sessions")
-    public ResponseEntity<UserLoginResponseRecord> login(@Valid @RequestBody UserLoginRequestRecord userLoginRequestDTO, HttpSession session) {
-        UserLoginResponseRecord response = userService.userLogin(userLoginRequestDTO);
+    public ResponseEntity<UserLoginResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO userLoginRequestDTO, HttpSession session) {
+        UserLoginResponseDTO response = userService.userLogin(userLoginRequestDTO);
         User user = userRepository.getUserByEmail(userLoginRequestDTO.email()).get();
 
         sessionManager.setCurrentUser(session, user);

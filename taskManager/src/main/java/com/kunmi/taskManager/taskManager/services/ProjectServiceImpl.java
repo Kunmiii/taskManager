@@ -1,6 +1,6 @@
 package com.kunmi.taskManager.taskManager.services;
 
-import com.kunmi.taskManager.taskManager.records.*;
+import com.kunmi.taskManager.taskManager.dto.*;
 import com.kunmi.taskManager.taskManager.exceptions.ProjectNotFoundException;
 import com.kunmi.taskManager.taskManager.exceptions.UserNotFoundException;
 import com.kunmi.taskManager.taskManager.models.Project;
@@ -26,7 +26,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
 
     @Override
-    public ProjectListResponseRecord findAll(String email) {
+    public ProjectListResponseDTO findAll(String email) {
         User user = getCurrentUser(email);
 
         log.info("Fetching projects for user: {}", user.getEmail());
@@ -35,18 +35,18 @@ public class ProjectServiceImpl implements ProjectService {
 
         if (projects.isEmpty()) {
             log.info("No projects found for user: {}", user.getEmail());
-            return new ProjectListResponseRecord("No projects found for user: " + user.getEmail());
+            return new ProjectListResponseDTO("No projects found for user: " + user.getEmail());
         }
 
-        List<ProjectRecord> projectRecords = projects.stream()
-                .map(project -> new ProjectRecord(project.getId().toString(), project.getName())
+        List<ProjectDTO> projectDTOS = projects.stream()
+                .map(project -> new ProjectDTO(project.getId().toString(), project.getName())
                 ).toList();
 
-        return new ProjectListResponseRecord(projectRecords, null);
+        return new ProjectListResponseDTO(projectDTOS, null);
     }
 
     @Override
-    public GetProjectResponseRecord find(String email, UUID id) {
+    public GetProjectResponseDTO find(String email, UUID id) {
         User currentUser = getCurrentUser(email);
         Project project = projectRepository.findById(id).orElseThrow(() ->
                 new ProjectNotFoundException("Project not found for user: " + currentUser.getEmail()));
@@ -55,42 +55,41 @@ public class ProjectServiceImpl implements ProjectService {
             throw new ProjectNotFoundException("Project not found for user:" + currentUser.getEmail());
         }
 
-        return new GetProjectResponseRecord(project.getId(), project.getName());
+        return new GetProjectResponseDTO(project.getId(), project.getName());
     }
 
     @Override
     @Transactional
-    public ProjectResponseRecord create(ProjectRequestRecord projectRequestRecord, String email) {
+    public ProjectResponseDTO create(ProjectRequestDTO projectRequestDTO, String email) {
         User user = getCurrentUser(email);
 
-        Project project = new Project(projectRequestRecord.projectName());
+        Project project = new Project(projectRequestDTO.projectName());
         project.setUser(user);
         projectRepository.save(project);
 
         log.info("Project: {} created for user {}", project.getName(), email);
-        return new ProjectResponseRecord(project.getId(), project.getName());
+        return new ProjectResponseDTO(project.getId(), project.getName());
     }
 
     @Override
     @Transactional
-    public UpdateProjectResponseRecord update(UUID id, UpdateProjectRequestRecord updateProjectRequestRecord, String email) {
+    public void update(UUID id, UpdateProjectRequestDTO updateProjectRequestDTO, String email) {
         User currentUser = getCurrentUser(email);
-        Project project = projectRepository.findById(updateProjectRequestRecord.id())
+        Project project = projectRepository.findById(updateProjectRequestDTO.id())
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found for: " + currentUser.getEmail()));
 
-        if (id.equals(currentUser.getId())) {
+        if (!project.getId().equals(currentUser.getId())) {
             throw new ProjectNotFoundException("Project not found for user: " + currentUser.getEmail());
         }
 
-        project.setName(updateProjectRequestRecord.projectName());
+        project.setName(updateProjectRequestDTO.projectName());
         projectRepository.save(project);
         log.info("Project with ID {} updated successfully", project.getId());
-        return new UpdateProjectResponseRecord("Project updated successfully");
     }
 
     @Override
     @Transactional
-    public DeleteProjectResponseRecord delete(String email, UUID id) {
+    public void delete(String email, UUID id) {
         User currentUser = getCurrentUser(email);
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ProjectNotFoundException("Project not found for user: " + currentUser.getEmail()));
@@ -101,7 +100,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         projectRepository.deleteById(project.getId());
         log.info("Project ID {} is successfully deleted", project.getId());
-        return new DeleteProjectResponseRecord("Project deleted successfully");
     }
 
     private User getCurrentUser(String email) {

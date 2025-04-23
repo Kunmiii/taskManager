@@ -49,6 +49,28 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ExceptionResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
+        log.info("Invalid credentials: {}", ex.getMessage());
+        return ResponseEntity.status(UNAUTHORIZED)
+                .body(ExceptionResponse.builder()
+                        .businessErrorCode(BusinessErrorCodes.INVALID_CREDENTIALS.getCode())
+                        .businessErrorDescription(BusinessErrorCodes.INVALID_CREDENTIALS.getDescription())
+                        .error(ex.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(UserAlreadyExistException.class)
+    public ResponseEntity<ExceptionResponse> handleUserAlreadyExists(UserAlreadyExistException ex) {
+        log.info("User already exists: {}", ex.getMessage());
+        return ResponseEntity.status(UNAUTHORIZED)
+                .body(ExceptionResponse.builder()
+                        .businessErrorCode(BusinessErrorCodes.USER_ALREADY_EXISTS.getCode())
+                        .businessErrorDescription(BusinessErrorCodes.USER_ALREADY_EXISTS.getDescription())
+                        .error(ex.getMessage())
+                        .build());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
         Set<String> errors = new HashSet<>();
