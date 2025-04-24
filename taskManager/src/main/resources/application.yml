@@ -1,0 +1,29 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: taskManager
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskManager
+    driverClassName: org.postgresql.Driver
+    username: postgres
+    password: Kunmi568.3
+
+    jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  logging:
+    level:
+      org.springframework.web: DEBUG
+      com.kunmi.taskManager.taskManager: DEBUG
+
+
+
+
+
+
+
+
+
